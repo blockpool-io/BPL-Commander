@@ -212,7 +212,7 @@ function proc_vars {
         top_lvl=$(top_level_parent_pid $node)
 
         # Looking for bpl-node installations and performing actions
-        bpldir=`locate -b "\bpl-node"`
+        bpldir=`locate -b "\BPL-node"`
 
         # Getting the parent of the install path
         parent=`dirname $bpldir 2>&1`
