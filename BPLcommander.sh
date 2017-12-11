@@ -197,7 +197,7 @@ function top_level_parent_pid {
 
 # Process management variables
 function proc_vars {
-        node=`pgrep -a "node" | grep bpl-node | awk '{print $1}'`
+        node=`pgrep -a "node" | grep  | awk '{print $1}'`
         if [ "$node" == "" ] ; then
                 node=0
         fi
@@ -209,9 +209,7 @@ function proc_vars {
         frvr=`pgrep -a "node" | grep forever | awk '{print $1}'`
 
         # Find the top level process of node
-        top_lvl=$(top_level_parent_pid $node)
-
-        # Looking for bpl-node installations and performing actions
+        # Looking for BPL-node installations and performing actions
         bpldir=`locate -b "\BPL-node"`
 
         # Getting the parent of the install path
@@ -706,9 +704,9 @@ function nvm {
 function inst_bpl {
 #	proc_vars
 	cd $HOME
-        mkdir bpl-node
+        mkdir BPL-node
         git clone https://github.com/blockpool-io/BPL-node.git 2>/dev/null
-        cd bpl-node
+        cd BPL-node
 	git checkout $GIT_ORIGIN 2>/dev/null
 	git pull origin $GIT_ORIGIN 2>/dev/null
         npm install grunt-cli -g 2>/dev/null
