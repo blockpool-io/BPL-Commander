@@ -1,5 +1,7 @@
 # BPL-Commander
 
+##DO NOT RUN BPL COMMANDER AS ROOT##
+
 git clone https://github.com/blockpool-io/BPL-Commander.git
 
 cd BPL-Commander
