@@ -209,6 +209,8 @@ function proc_vars {
         frvr=`pgrep -a "node" | grep forever | awk '{print $1}'`
 
         # Find the top level process of node
+	top_lvl=$(top_level_parent_pid $node)
+	
         # Looking for BPL-node installations and performing actions
         bpldir=`locate -b "\BPL-node"`
 
