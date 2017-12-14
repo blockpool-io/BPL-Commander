@@ -241,7 +241,7 @@ change_address() {
 	echo "$(yellow "   Enter your delegate address for Stats")"
 	echo "$(yellow "    WITHOUT QUOTES, followed by 'ENTER'")"
 	read -e -r -p "$(yellow " :") " inaddress
-	while [ ! "${inaddress:0:1}" == "A" ] ; do
+	while [ ! "${inaddress:0:1}" == "B" ] ; do
 		echo -e "\n$(ired "   Enter delegate ADDRESS, NOT the SECRET!")\n"
 		read -e -r -p "$(yellow " :") " inaddress
 	done
