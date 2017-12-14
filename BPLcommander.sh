@@ -197,7 +197,7 @@ function top_level_parent_pid {
 
 # Process management variables
 function proc_vars {
-        node=`pgrep -a "node" | grep  | awk '{print $1}'`
+        node=`pgrep -a "node" | grep BPL-node | awk '{print $1}'`
         if [ "$node" == "" ] ; then
                 node=0
         fi
