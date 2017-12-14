@@ -58,7 +58,7 @@ Follow the on screen directions from here on out.
 
 	`wget https://raw.githubusercontent.com/blockpool-io/BPL-Commander/master/BPLcommander.sh `
 
-	This will place BPLcommander.sh in the root of your Home folder
+	This will place BPLcommander.sh in the root of your Home folder (or your current dir if not Home)
 
 2. Make the script executable
 
