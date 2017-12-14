@@ -481,7 +481,7 @@ function log_rotate {
 		if [ ! -f /etc/logrotate.d/BPL-logrotate ]; then
 			echo -e " Setting up Logrotate for BPL node log files."
 			sudo bash -c "cat << 'EOF' >> /etc/logrotate.d/BPL-logrotate
-$BPLdir/logs/BPL.log {
+$bpldir/logs/BPL.log {
         size=50M
         copytruncate
         create 660 $USER $USER
