@@ -197,7 +197,7 @@ function top_level_parent_pid {
 
 # Process management variables
 function proc_vars {
-        node=`pgrep -a "node" | grep  | awk '{print $1}'`
+        node=`pgrep -a "node" | grep BPL-node | awk '{print $1}'`
         if [ "$node" == "" ] ; then
                 node=0
         fi
@@ -209,6 +209,8 @@ function proc_vars {
         frvr=`pgrep -a "node" | grep forever | awk '{print $1}'`
 
         # Find the top level process of node
+	top_lvl=$(top_level_parent_pid $node)
+	
         # Looking for BPL-node installations and performing actions
         bpldir=`locate -b "\BPL-node"`
 
@@ -239,7 +241,7 @@ change_address() {
 	echo "$(yellow "   Enter your delegate address for Stats")"
 	echo "$(yellow "    WITHOUT QUOTES, followed by 'ENTER'")"
 	read -e -r -p "$(yellow " :") " inaddress
-	while [ ! "${inaddress:0:1}" == "A" ] ; do
+	while [ ! "${inaddress:0:1}" == "B" ] ; do
 		echo -e "\n$(ired "   Enter delegate ADDRESS, NOT the SECRET!")\n"
 		read -e -r -p "$(yellow " :") " inaddress
 	done
@@ -479,7 +481,7 @@ function log_rotate {
 		if [ ! -f /etc/logrotate.d/BPL-logrotate ]; then
 			echo -e " Setting up Logrotate for BPL node log files."
 			sudo bash -c "cat << 'EOF' >> /etc/logrotate.d/BPL-logrotate
-$BPLdir/logs/BPL.log {
+$bpldir/logs/bpl.log {
         size=50M
         copytruncate
         create 660 $USER $USER
