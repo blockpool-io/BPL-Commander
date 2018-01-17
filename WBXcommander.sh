@@ -2,8 +2,9 @@
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #                                                     #
-#                 BPL Commander Script                #
-#                by locohammerhead and                #
+#                 WBX Commander Script                #
+#                by locohammerhead,cyrus19901 				#
+#														and                				#
 #           tharude a.k.a The Forging Penguin         #
 #         thanks ViperTKD for the helping hand        #
 #                 19/01/2017 ARK Team                 #
@@ -41,9 +42,9 @@ function yellow {
 if [ "$(id -u)" = "0" ]; then
 	clear
 	echo -e "\n$(ired " !!! This script should NOT be started using sudo or as the root user !!! ") "
-	echo -e "\nUse $(green "bash BPLcommander.sh") as a REGULAR user instead"
-	echo -e "Execute ONCE $(green "chmod +x BPLcommander.sh") followed by $(green "ENTER")"
-	echo -e "and start it only by $(green "./bplcommander.sh") as regular user after\n"
+	echo -e "\nUse $(green "bash WBXcommander.sh") as a REGULAR user instead"
+	echo -e "Execute ONCE $(green "chmod +x WBXcommander.sh") followed by $(green "ENTER")"
+	echo -e "and start it only by $(green "./wbxcommander.sh") as regular user after\n"
 	exit 1
 fi
 
@@ -54,7 +55,7 @@ if [ $(systemd-detect-virt -c) != "none" ]; then
 	echo "$(ired "                                                                                 ")"
 	echo "$(ired "                    OpenVZ / LXC / Virtuoso Container detected!                  ")"
 	echo "$(ired "                                                                                 ")"
-	echo "$(ired "     Running BPL Node on a Container based virtual system is not recommended!    ")"
+	echo "$(ired "     Running WBX Node on a Container based virtual system is not recommended!    ")"
 	echo "$(ired "   Please change your VPS provider with one that uses hardware Virtualization.   ")"
 	echo "$(ired "                                                                                 ")"
 	echo "$(ired "                            This script will now exit!                           ")"
@@ -75,9 +76,9 @@ fi
 
 EDIT=nano
 
-GIT_ORIGIN=mainnet
+GIT_ORIGIN=wbx
 
-LOC_SERVER="http://localhost:9030"
+LOC_SERVER="http://localhost:9032"
 
 ADDRESS=""
 
@@ -88,14 +89,14 @@ re='^[0-9]+$' # For numeric checks
 #pubkey="02a3e3e5fc36565ab4275ddfee1592667f6c46f5e9aa7528499511d65c5e82a7db"
 
 # Logfile
-log="install_bpl.log"
+log="install_wbx.log"
 
 #~ SEED NODES ~#
-seed0=("13.56.163.57:9030" "seed01")
-seed1=("54.183.132.15:9030" "seed02")
-seed2=("54.183.69.30:9030" "seed03")
-seed3=("54.183.152.67:9030" "seed04")
-seed4=("54.183.22.145:9030" "seed05")
+seed0=("165.227.224.117:9032" "seed01")
+seed1=("165.227.239.66:9032" "seed02")
+seed2=("138.68.183.82:9032" "seed03")
+seed3=("178.62.23.57:9032" "seed04")
+seed4=("178.62.50.166:9032" "seed05")
 
 #~ API CALL ~#
 apicall="/api/loader/status/sync"
@@ -124,14 +125,14 @@ clear
 tput bold; tput setaf 2
 cat << "EOF"
 
-                               $$$$$$$\  $$$$$$$\  $$\                                           
-                               $$  __$$\ $$  __$$\ $$ |                                          
-                               $$ |  $$ |$$ |  $$ |$$ |                                          
-                               $$$$$$$\ |$$$$$$$  |$$ |                                          
-                               $$  __$$\ $$  ____/ $$ |                                          
-                               $$ |  $$ |$$ |      $$ |                                          
- $$$$$$\                       $$$$$$$  |$$ |      $$$$$$$$\             $$\                     
-$$  __$$\                      \_______/ \__|      \________|            $$ |                    
+                               $$\      $$\ $$$$$$$\  $$\   $$\                          
+                               $$ | $\  $$ |$$  __$$\ $$ |  $$ |                                         
+                               $$ |$$$\ $$ |$$ |  $$ |\$$\ $$  |                                         
+                               $$ $$ $$\$$ |$$$$$$$\ | \$$$$  /                                          
+                               $$$$  _$$$$ |$$  __$$\  $$  $$<                                           
+                               $$$  / \$$$ |$$ |  $$ |$$  /\$$\                                         
+ $$$$$$\                       $$  /   \$$ |$$$$$$$  |$$ /  $$ |         $$\                     
+$$  __$$\                      \__/     \__|\_______/ \__|  \__|         $$ |                    
 $$ /  \__|$$$$$$\  $$$$$$\$$$$\  $$$$$$\$$$$\   $$$$$$\  $$$$$$$\   $$$$$$$ | $$$$$$\   $$$$$$\  
 $$ |     $$  __$$\ $$  _$$  _$$\ $$  _$$  _$$\  \____$$\ $$  __$$\ $$  __$$ |$$  __$$\ $$  __$$\ 
 $$ |     $$ /  $$ |$$ / $$ / $$ |$$ / $$ / $$ | $$$$$$$ |$$ |  $$ |$$ /  $$ |$$$$$$$$ |$$ |  \__|
@@ -211,11 +212,11 @@ function proc_vars {
         # Find the top level process of node
 	top_lvl=$(top_level_parent_pid $node)
 	
-        # Looking for BPL-node installations and performing actions
-        bpldir=`locate -b "\BPL-node"`
+        # Looking for WBX-node installations and performing actions
+        wbxdir=`locate -b "\BPL-node"`
 
         # Getting the parent of the install path
-        parent=`dirname $bpldir 2>&1`
+        parent=`dirname $wbxdir 2>&1`
 
         # Forever Process ID
         forever_process=`forever --plain list | grep $node | sed -nr 's/.*\[(.*)\].*/\1/p'`
@@ -226,14 +227,14 @@ function proc_vars {
 
 #PSQL Queries
 query() {
-PUBKEY="$(psql -d bpl_mainnet -t -c 'SELECT ENCODE("publicKey",'"'"'hex'"'"') as "publicKey" FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-DNAME="$(psql -d bpl_mainnet -t -c 'SELECT username FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-PROD_BLOCKS="$(psql -d bpl_mainnet -t -c 'SELECT producedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-MISS_BLOCKS="$(psql -d bpl_mainnet -t -c 'SELECT missedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-#BALANCE="$(psql -d bpl_mainnet -t -c 'SELECT (balance/100000000.0) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | sed -e 's/^[[:space:]]*//')"
-BALANCE="$(psql -d bpl_mainnet -t -c 'SELECT to_char(("balance"/100000000.0), '"'FM 999,999,999,990D00000000'"' ) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-HEIGHT="$(psql -d bpl_mainnet -t -c 'SELECT height FROM blocks ORDER BY HEIGHT DESC LIMIT 1;' | xargs)"
-RANK="$(psql -d bpl_mainnet -t -c 'WITH RANK AS (SELECT DISTINCT "publicKey", "vote", "round", row_number() over (order by "vote" desc nulls last) as "rownum" FROM mem_delegates where "round" = (select max("round") from mem_delegates) ORDER BY "vote" DESC) SELECT "rownum" FROM RANK WHERE "publicKey" = '"'03cfafb2ca8cf7ce70f848456b1950dc7901946f93908e4533aace997c242ced8a'"';' | xargs)"
+PUBKEY="$(psql -d bpl_wbx -t -c 'SELECT ENCODE("publicKey",'"'"'hex'"'"') as "publicKey" FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+DNAME="$(psql -d bpl_wbx -t -c 'SELECT username FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+PROD_BLOCKS="$(psql -d bpl_wbx -t -c 'SELECT producedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+MISS_BLOCKS="$(psql -d bpl_wbx -t -c 'SELECT missedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+#BALANCE="$(psql -d bpl_wbx -t -c 'SELECT (balance/100000000.0) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | sed -e 's/^[[:space:]]*//')"
+BALANCE="$(psql -d bpl_wbx -t -c 'SELECT to_char(("balance"/100000000.0), '"'FM 999,999,999,990D00000000'"' ) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+HEIGHT="$(psql -d bpl_wbx -t -c 'SELECT height FROM blocks ORDER BY HEIGHT DESC LIMIT 1;' | xargs)"
+RANK="$(psql -d bpl_wbx -t -c 'WITH RANK AS (SELECT DISTINCT "publicKey", "vote", "round", row_number() over (order by "vote" desc nulls last) as "rownum" FROM mem_delegates where "round" = (select max("round") from mem_delegates) ORDER BY "vote" DESC) SELECT "rownum" FROM RANK WHERE "publicKey" = '"'03cfafb2ca8cf7ce70f848456b1950dc7901946f93908e4533aace997c242ced8a'"';' | xargs)"
 }
 
 # Stats Address Change
@@ -241,7 +242,7 @@ change_address() {
 	echo "$(yellow "   Enter your delegate address for Stats")"
 	echo "$(yellow "    WITHOUT QUOTES, followed by 'ENTER'")"
 	read -e -r -p "$(yellow " :") " inaddress
-	while [ ! "${inaddress:0:1}" == "B" ] ; do
+	while [ ! "${inaddress:0:1}" == "W" ] ; do
 		echo -e "\n$(ired "   Enter delegate ADDRESS, NOT the SECRET!")\n"
 		read -e -r -p "$(yellow " :") " inaddress
 	done
@@ -304,20 +305,20 @@ while true; do
 #	echo -e "$(green "Public Key:")\n$(yellow "$PUBKEY")\n"
 	echo -e "$(green "      Forged Blocks    : ")$(yellow "$PROD_BLOCKS")"
 	echo -e "$(green "      Missed Blocks    : ")$(yellow "$MISS_BLOCKS")"
-	echo -e "$(green "      BPL Balance      : ")$(yellow "$BALANCE")"
+	echo -e "$(green "      WBX Balance      : ")$(yellow "$BALANCE")"
 	echo
 	echo -e "\n$(yellow "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")"
-        if [ -e $bpldir/app.js ]; then
-                echo -e "\n$(green "       ✔ BPL Node installation found!")\n"
+        if [ -e $wbxdir/app.js ]; then
+                echo -e "\n$(green "       ✔ WBX Node installation found!")\n"
                 if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                        echo -e "$(green "      BPL Node process is running with:")"
+                        echo -e "$(green "      WBX Node process is running with:")"
                         echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
-                        echo -e "$(green "   and Work Directory: $bpldir")\n"
+                        echo -e "$(green "   and Work Directory: $wbxdir")\n"
                 else
-                        echo -e "\n$(red "       ✘ No BPL Node process is running")\n"
+                        echo -e "\n$(red "       ✘ No WBX Node process is running")\n"
                 fi
         else
-                echo -e "\n$(red "       ✘ No BPL Node installation is found")\n"
+                echo -e "\n$(red "       ✘ No WBX Node installation is found")\n"
         fi
 	echo -e "\n$(yellow "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")"
 	echo -e "\n$(yellow "          Press 'Enter' to terminate          ")"
@@ -335,11 +336,11 @@ function stats {
 	is_syncing=`curl -s --connect-timeout 1 $LOC_SERVER/api/loader/status/sync 2>/dev/null | jq ".syncing"`
 
 	if [ "$node" != "" ] && [ "$node" != "0" ]; then
-		echo -e "$(green "       Instance of BPL Node found with:")"
+		echo -e "$(green "       Instance of WBX Node found with:")"
 		echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
-		echo -e "$(green "       Directory: $bpldir")\n"
+		echo -e "$(green "       Directory: $wbxdir")\n"
 	else
-		echo -e "\n$(red "       ✘ BPL Node process is not running")\n"
+		echo -e "\n$(red "       ✘ WBX Node process is not running")\n"
 		pause
 	fi
 
@@ -463,7 +464,7 @@ function ntpd {
                         sudo service ntp start &>> $log
 			sleep 2
                                 if ! sudo pgrep -x "ntpd" > /dev/null; then
-                                        echo -e "NTP failed to start! It should be installed and running for BPL.\n Check /etc/ntp.conf for any issues and correct them first! \n Exiting."
+                                        echo -e "NTP failed to start! It should be installed and running for WBX.\n Check /etc/ntp.conf for any issues and correct them first! \n Exiting."
                                         exit 1
                                 fi
                         echo -e "NTP was successfully installed and started with PID:" `sudo pgrep -x "ntpd"`
@@ -474,14 +475,14 @@ function ntpd {
         echo "-------------------------------------------------------------------"
 }
 
-# Logrotate for BPL Node logs
+# Logrotate for WBX Node logs
 function log_rotate {
 	if [[ "$(uname)" == "Linux" ]]; then
 
-		if [ ! -f /etc/logrotate.d/BPL-logrotate ]; then
-			echo -e " Setting up Logrotate for BPL node log files."
-			sudo bash -c "cat << 'EOF' >> /etc/logrotate.d/BPL-logrotate
-$bpldir/logs/bpl.log {
+		if [ ! -f /etc/logrotate.d/WBX-logrotate ]; then
+			echo -e " Setting up Logrotate for WBX node log files."
+			sudo bash -c "cat << 'EOF' >> /etc/logrotate.d/WBX-logrotate
+$wbxdir/logs/wbx.log {
         size=50M
         copytruncate
         create 660 $USER $USER
@@ -504,9 +505,9 @@ EOF"
 # GIT Update Check
 function git_upd_check {
 
-	if [ -d "$bpldir" ]; then
+	if [ -d "$wbxdir" ]; then
 
-		cd $bpldir
+		cd $wbxdir
 
 		git remote update >&- 2>&-
 		UPSTREAM=${1:-'@{u}'}
@@ -517,7 +518,7 @@ function git_upd_check {
 		cd $HOME
 
 		if [ "$LOCAL" == "$REMOTE" ]; then
-			echo -e "         $(igreen "    BPL Node is Up-to-date    \n")"
+			echo -e "         $(igreen "    WBX Node is Up-to-date    \n")"
 			UP_TO_DATE=1
 		elif [ "$LOCAL" == "$BASE" ]; then
 			echo -e "         $(ired "   Please Update! Press (3)    \n")"
@@ -541,7 +542,7 @@ function purge_pgdb {
         else
 	echo -e "    $(ired "                                        ")"
 	echo -e "    $(ired "   WARNING! This option will stop all   ")"
-	echo -e "    $(ired "   running BPL Node processes and will  ")"
+	echo -e "    $(ired "   running WBX Node processes and will  ")"
 	echo -e "    $(ired "   remove the databases and PostgreSQL  ")"
 	echo -e "    $(ired "   installation! Are you REALLY sure?   ")"
 	echo -e "    $(ired "                                        ")"
@@ -610,7 +611,7 @@ if [ "$(ls -A $SNAPDIR)" ]; then
         ## Numeric checks
                 if [ $REPLY -le ${#snapshots[*]} ]; then
                         echo -e "$(yellow "\n         Restoring snapshot ${snapshots[$((REPLY-1))]}")\n"
-			pg_restore -O -j 8 -d bpl_mainnet $SNAPDIR/${snapshots[$(($REPLY-1))]} 2>/dev/null
+			pg_restore -O -j 8 -d bpl_wbx $SNAPDIR/${snapshots[$(($REPLY-1))]} 2>/dev/null
 			echo -e "$(green "   Snapshot ${snapshots[$(($REPLY-1))]} was restored successfully")\n"
                 else
                         echo -e "$(red "\n        Value is out of list range!\n")"
@@ -624,7 +625,7 @@ else
         echo -e "$(red "    No snapshots found in $SNAPDIR")"
         read -e -r -p "$(yellow "\n Do you like to download the latest snapshot? (Y/n) ")" -i "Y" YN
         if [[ "$YN" =~ [Yy]$ ]]; then
-		echo -e "$(yellow "\n     Downloading current snapshot from BPL.IO\n")"
+		echo -e "$(yellow "\n     Downloading current snapshot from WBX.IO\n")"
                 wget -nv https://snapshots.blockpool.io/current -O $SNAPDIR/current
 		echo -e "$(yellow "\n              Download finished\n")"
         fi
@@ -634,7 +635,7 @@ else
                         if [[ "$YN" =~ [Yy]$ ]]; then
                                 #here calling the db_restore function
 				echo -e "$(yellow "\n   Restoring $SNAPDIR/current ... ")"
-                                pg_restore -O -j 8 -d bpl_mainnet $SNAPDIR/current 2>/dev/null
+                                pg_restore -O -j 8 -d bpl_wbx $SNAPDIR/current 2>/dev/null
 				echo -e "$(green "\n    Current snapshot has been restored\n")"
                         fi
         else
@@ -702,8 +703,8 @@ function nvm {
         echo -e "\n$(yellow "Check install.log for reported install errors")"
 }
 
-# Install BPL Node
-function inst_bpl {
+# Install WBX Node
+function inst_wbx {
 #	proc_vars
 	cd $HOME
         mkdir BPL-node
@@ -714,28 +715,29 @@ function inst_bpl {
         npm install grunt-cli -g 2>/dev/null
         npm install libpq 2>/dev/null
         npm install secp256k1 2>/dev/null
+        npm install 2>/dev/null
         npm install bindings 2>/dev/null
         git submodule init 2>/dev/null
         git submodule update 2>/dev/null
-        npm install 2>/dev/null
+
 }
 
-# Create BPL user and DB
+# Create WBX user and DB
 function create_db {
         #check if PG is running here if not Start.
         if [ -z "$pgres" ]; then
                 sudo service postgresql start
         fi
         sleep 1
-#       sudo -u postgres dropdb --if-exists bpl_mainnet
-#       sleep 1
-#       sudo -u postgres dropuser --if-exists $USER # 2>&1
-#       sleep 1
+      sudo -u postgres dropdb --if-exists bpl_wbx
+      sleep 1
+      sudo -u postgres dropuser --if-exists $USER # 2>&1
+      sleep 1
 	sudo -u postgres psql -c "update pg_database set encoding = 6, datcollate = 'en_US.UTF8', datctype = 'en_US.UTF8' where datname = 'template0';" >&- 2>&-
 	sudo -u postgres psql -c "update pg_database set encoding = 6, datcollate = 'en_US.UTF8', datctype = 'en_US.UTF8' where datname = 'template1';" >&- 2>&-
         sudo -u postgres psql -c "CREATE USER $USER WITH PASSWORD 'Password' CREATEDB;" >&- 2>&-
         sleep 1
-        createdb bpl_mainnet
+        createdb bpl_wbx
 }
 
 # Check if DB exists
@@ -745,7 +747,7 @@ function db_exists {
                 sudo service postgresql start
         fi
 
-        if [[ ! $(sudo -u postgres psql bpl_mainnet -c '\q' 2>&1) ]]; then
+        if [[ ! $(sudo -u postgres psql bpl_wbx -c '\q' 2>&1) ]]; then
                 read -r -n 1 -p "$(yellow "  Database exists! Do you want to drop it? (y/n):") " YN
                         if [[ "$YN" =~ [Yy]$ ]]; then
                                 drop_db;
@@ -774,13 +776,13 @@ function user_exists {
         fi
 }
 
-# Drop BPL DB
+# Drop WBX DB
 function drop_db {
         # check if it's running and start if not.
         if [ -z "$pgres" ]; then
                 sudo service postgresql start
         fi
-        dropdb --if-exists bpl_mainnet
+        dropdb --if-exists bpl_wbx
 }
 
 function drop_user {
@@ -795,12 +797,12 @@ function drop_user {
         fi
 }
 
-function update_bpl {
+function update_wbx {
 	if [ "$UP_TO_DATE" -ne 1 ]; then
-	        cd $bpldir
+	        cd $wbxdir
 #       	 forever stop app.js
 		TMP_PASS=$(jq -r '.forging.secret | @csv' config.$GIT_ORIGIN.json)
-		mv config.mainnet.json ../
+		mv config.wbx.json ../
 	        git pull origin $GIT_ORIGIN
 		git checkout $GIT_ORIGIN
 	        npm install
@@ -814,56 +816,56 @@ function update_bpl {
 
 		unset TMP_PASS
 #		forever restart $forever_process
-#	        forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json
+#	        forever start app.js --genesis genesisBlock.wbx.json --config config.wbx.json
 	else
-		echo "BPL Node is already up to date!"
+		echo "WBX Node is already up to date!"
 		sleep 2
 	fi
 }
 
-# Put the password in config.mainnet.json
+# Put the password in config.wbx.json
 function secret {
     echo -e "\n"
 
-    #Put check if bpldir is empty, if it is stays only config.mainnet.json
+    #Put check if wbxdir is empty, if it is stays only config.wbx.json
     echo -e "$(yellow " Enter (copy/paste) your private key (secret)")"
     echo -e "$(yellow "    (WITHOUT QUOTES!) followed by 'Enter'")"
     read -e -r -p ": " secret
 
-    cd $bpldir
+    cd $wbxdir
     jq -r ".forging.secret = [\"$secret\"]" config.$GIT_ORIGIN.json > config.$GIT_ORIGIN.tmp && mv config.$GIT_ORIGIN.tmp config.$GIT_ORIGIN.json
 }
 
 ### Menu Options ###
 
-# Install BPL node
+# Install WBX node
 one(){
 	cd $HOME
 	proc_vars
-	if [ -e $bpldir/app.js ]; then
+	if [ -e $wbxdir/app.js ]; then
 		clear
 		asciiart
-		echo -e "\n$(green "       ✔ BPL Node is already installed!")\n"
+		echo -e "\n$(green "       ✔ WBX Node is already installed!")\n"
 		if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                	echo -e "$(green "A working instance of BPL Node is found with:")"
+                	echo -e "$(green "A working instance of WBX Node is found with:")"
                 	echo -e "$(green "System PID: $node, Forever PID $forever_process")"
-        	        echo -e "$(green "and Work Directory: $bpldir")\n"
+        	        echo -e "$(green "and Work Directory: $wbxdir")\n"
                 fi
 		pause
 	else
 		clear
 		asciiart
-		echo -e "$(yellow "           Installing BPL node....")"
+		echo -e "$(yellow "           Installing WBX node....")"
 		create_db
-		inst_bpl
+		inst_wbx
 		clear
 		asciiart
-		echo -e "$(green "          ✔ BPL node was installed")\n"
+		echo -e "$(green "          ✔ WBX node was installed")\n"
 		sudo updatedb
 		sleep 1
 		proc_vars
 		log_rotate
-		config="$parent/config.mainnet.json"
+		config="$parent/config.wbx.json"
 #		echo "$config" 2>/dev/null
 #		pause
 		if  [ ! -e $config ] ; then
@@ -875,57 +877,57 @@ one(){
 	fi
 }
 
-# Reinstall BPL Node
+# Reinstall WBX Node
 two(){
 	clear
 	asciiart
-	echo -e "$(ired "!!! This option will erase your DB and BPL Node installation !!!")\n"
+	echo -e "$(ired "!!! This option will erase your DB and WBX Node installation !!!")\n"
 	read -e -r -p "$(red "   Are you sure that you want to proceed? (Y/N): ")" -i "N" keys
 	if [ "$keys" == "Y" ]; then
 		proc_vars
-        	if [ -e $bpldir/app.js ]; then
+        	if [ -e $wbxdir/app.js ]; then
                 	clear
                 	asciiart
-                	echo -e "\n$(green " ✔ BPL Node installation found in $bpldir")\n"
+                	echo -e "\n$(green " ✔ WBX Node installation found in $wbxdir")\n"
                 	if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                        	echo -e "$(green "A working instance of BPL Node is found with:")"
+                        	echo -e "$(green "A working instance of WBX Node is found with:")"
                         	echo -e "$(green "System PID: $node, Forever PID $forever_process")"
-				echo -e "$(yellow "           Stopping BPL node ...")\n"
-				cd $bpldir
+				echo -e "$(yellow "           Stopping WBX node ...")\n"
+				cd $wbxdir
 				forever --plain stop $forever_process >&- 2>&-
 				cd $parent
                 	fi
 			echo -e "$(yellow "    Backing up configuration file to $parent")\n"
 			sleep 1
-			if [ -e $parent/config.mainnet.json ] ; then
+			if [ -e $parent/config.wbx.json ] ; then
 				read -e -r -p "$(yellow "    Backup file exists! Overwrite? (Y/N): ")" -i "Y" keys
 				if [ "$keys" == "Y" ]; then
-					cp $bpldir/config.mainnet.json $parent
+					cp $wbxdir/config.wbx.json $parent
 					cd $parent
 				fi
 			else
-				cp $bpldir/config.mainnet.json $parent
+				cp $wbxdir/config.wbx.json $parent
 				cd $parent
 			fi
-			echo -e "$(yellow "        Removing BPL Node directory...")\n"
+			echo -e "$(yellow "        Removing WBX Node directory...")\n"
 			sleep 1
-			rm -rf $bpldir
+			rm -rf $wbxdir
 			drop_db
 			drop_user
 			one
 			echo ""
-			if [ -e $parent/config.mainnet.json ] ; then
+			if [ -e $parent/config.wbx.json ] ; then
 				read -e -r -p "$(yellow " Do you want to restore your config? (Y/N): ")" -i "Y" keys
 #				echo "Break1"; pause
 				if [ "$keys" == "Y" ]; then
-					cp $parent/config.mainnet.json $bpldir
-					echo -e "\n$(green " ✔ Config was restored in $bpldir")\n"
-					read -e -r -p "$(yellow " Do you want to start BPL Node now? (Y/N): ")" -i "Y" keys
+					cp $parent/config.wbx.json $wbxdir
+					echo -e "\n$(green " ✔ Config was restored in $wbxdir")\n"
+					read -e -r -p "$(yellow " Do you want to start WBX Node now? (Y/N): ")" -i "Y" keys
 					if [ "$keys" == "Y" ]; then
 						start
 					fi
 				else
-					read -e -r -p "$(yellow " Do you want to start BPL Node now? (Y/N): ")" -i "Y" keys
+					read -e -r -p "$(yellow " Do you want to start WBX Node now? (Y/N): ")" -i "Y" keys
 					if [ "$keys" == "Y" ]; then
 						start
 					fi
@@ -938,11 +940,11 @@ two(){
 			sleep 1
 			one
 			proc_vars
-			if [ -e $parent/config.mainnet.json ] ; then
+			if [ -e $parent/config.wbx.json ] ; then
 				read -e -r -p "$(yellow " Do you want to restore your config? (Y/N): ")" -i "Y" keys
 				if [ "$keys" == "Y" ]; then
-					cp $parent/config.mainnet.json $bpldir
-					echo -e "\n$(green " ✔ Config was restored in $bpldir")\n"
+					cp $parent/config.wbx.json $wbxdir
+					echo -e "\n$(green " ✔ Config was restored in $wbxdir")\n"
 				fi
 			else
 				echo -e "\n$(yellow " No backup config was found in $parent")\n"
@@ -952,7 +954,7 @@ two(){
 				fi
 			fi
 #			echo "Break2"; pause
-			read -e -r -p "$(yellow " Do you want to start BPL Node now? (Y/N): ")" -i "Y" keys
+			read -e -r -p "$(yellow " Do you want to start WBX Node now? (Y/N): ")" -i "Y" keys
 			if [ "$keys" == "Y" ]; then
 				start
 			fi
@@ -965,25 +967,25 @@ three(){
         proc_vars
 	if [ "$UP_TO_DATE" -ne 1 ]; then
 	        if [ "$node" != "" ] && [ "$node" != "0" ]; then
-        	        echo -e "$(green "       Instance of BPL Node found with:")"
+        	        echo -e "$(green "       Instance of WBX Node found with:")"
                 	echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
-	                echo -e "$(green "       Directory: $bpldir")\n"
-			echo -e "\n$(green "             Updating BPL Node...")\n"
-			update_bpl
+	                echo -e "$(green "       Directory: $wbxdir")\n"
+					echo -e "\n$(green "             Updating WBX Node...")\n"
+			update_wbx
 	                echo -e "$(green "                Restarting...")"
         	        forever restart $forever_process >&- 2>&-
-                	echo -e "\n$(green "    ✔ BPL Node was successfully restarted")\n"
+                	echo -e "\n$(green "    ✔ WBX Node was successfully restarted")\n"
 	                pause
 		else
-                	echo -e "\n$(red "       ✘ BPL Node process is not running")\n"
-			echo -e "$(green "            Updating BPL Node...")\n"
-			update_bpl
-			forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
-			echo -e "$(green "    ✔ BPL Node was successfully started")\n"
+                	echo -e "\n$(red "       ✘ WBX Node process is not running")\n"
+			echo -e "$(green "            Updating WBX Node...")\n"
+			update_wbx
+			node app.js --genesis genesisBlock.wbx.json --config config.wbx.json >&- 2>&-
+			echo -e "$(green "    ✔ WBX Node was successfully started")\n"
         	        pause
         	fi
 	else
-			echo -e "         $(igreen " BPL Node is already Up-to-date \n")"
+			echo -e "         $(igreen " WBX Node is already Up-to-date \n")"
 			sleep 2
 	fi
 
@@ -993,38 +995,38 @@ four(){
         asciiart
         proc_vars
         if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                echo -e "$(green "       Instance of BPL Node found with:")"
+                echo -e "$(green "       Instance of WBX Node found with:")"
                 echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
-                echo -e "$(green "       Directory: $bpldir")\n"
-                echo -e "\n$(green "            Stopping BPL Node...")\n"
-		cd $bpldir
+                echo -e "$(green "       Directory: $wbxdir")\n"
+                echo -e "\n$(green "            Stopping WBX Node...")\n"
+		cd $wbxdir
 		forever stop $forever_process >&- 2>&-
-		echo -e "$(green "             Dropping BPL DB...")\n"
+		echo -e "$(green "             Dropping WBX DB...")\n"
                 drop_db
 		drop_user
-		echo -e "$(green "             Creating BPL DB...")\n"
+		echo -e "$(green "             Creating WBX DB...")\n"
 		create_db
 
 		# Here should come the snap choice
 		snap_menu
-                echo -e "$(green "            Starting BPL Node...")"
-		forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
-                echo -e "\n$(green "    ✔ BPL Node was successfully started")\n"
+                echo -e "$(green "            Starting WBX Node...")"
+		forever start app.js --genesis genesisBlock.wbx.json --config config.wbx.json >&- 2>&-
+                echo -e "\n$(green "    ✔ WBX Node was successfully started")\n"
                 pause
         else
-                echo -e "\n$(red "       ✘ BPL Node process is not running")\n"
-                echo -e "$(green "             Dropping BPL DB...")\n"
+                echo -e "\n$(red "       ✘ WBX Node process is not running")\n"
+                echo -e "$(green "             Dropping WBX DB...")\n"
 		drop_db
 		drop_user
-		echo -e "$(green "             Creating BPL DB...")\n"
+		echo -e "$(green "             Creating WBX DB...")\n"
 		create_db
 
 		# Here should come the snap choice
 		snap_menu
-		echo -e "$(green "            Starting BPL Node...")"
-		cd $bpldir
-                forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
-                echo -e "$(green "    ✔ BPL Node was successfully started")\n"
+		echo -e "$(green "            Starting WBX Node...")"
+		cd $wbxdir
+                forever start app.js --genesis genesisBlock.wbx.json --config config.wbx.json >&- 2>&-
+                echo -e "$(green "    ✔ WBX Node was successfully started")\n"
                 pause
         fi
 }
@@ -1038,18 +1040,18 @@ five(){
 	read -e -r -p "$(yellow " Do you want to apply your new config? (Y/N): ")" -i "Y" keys
 	if [ "$keys" == "Y" ]; then
         	if [ "$node" != "" ] && [ "$node" != "0" ]; then
-			echo -e "\n$(green "       Instance of BPL Node found with:")"
+			echo -e "\n$(green "       Instance of WBX Node found with:")"
 			echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
-			echo -e "$(green "       Directory: $bpldir")\n"
+			echo -e "$(green "       Directory: $wbxdir")\n"
 			echo -e "$(green "                Restarting...")"
 	                forever restart $forever_process >&- 2>&-
-			echo -e "\n$(green "    ✔ BPL Node was successfully restarted")\n"
+			echo -e "\n$(green "    ✔ WBX Node was successfully restarted")\n"
 			pause
 		else
-			echo -e "\n$(red "       ✘ BPL Node process is not running")\n"
-			echo -e "$(green "            Starting BPL Node...")\n"
-			forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
-			echo -e "$(green "    ✔ BPL Node was successfully started")\n"
+			echo -e "\n$(red "       ✘ WBX Node process is not running")\n"
+			echo -e "$(green "            Starting WBX Node...")\n"
+			forever start app.js --genesis genesisBlock.wbx.json --config config.wbx.json >&- 2>&-
+			echo -e "$(green "    ✔ WBX Node was successfully started")\n"
 			pause
 		fi
 	fi
@@ -1078,31 +1080,31 @@ sub_menu
 #pause
 }
 
-# Start BPL Node
+# Start WBX Node
 start(){
         proc_vars
-        if [ -e $bpldir/app.js ]; then
+        if [ -e $wbxdir/app.js ]; then
                 clear
                 asciiart
-                echo -e "\n$(green "       ✔ BPL Node installation found!")\n"
+                echo -e "\n$(green "       ✔ WBX Node installation found!")\n"
                 if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                        echo -e "$(green " A working instance of BPL Node was found with:")"
+                        echo -e "$(green " A working instance of WBX Node was found with:")"
                         echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
-                        echo -e "$(green "   and Work Directory: $bpldir")\n"
+                        echo -e "$(green "   and Work Directory: $wbxdir")\n"
 		else
-			echo -e "$(green "            Starting BPL Node...")\n"
-			cd $bpldir
-			forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
+			echo -e "$(green "            Starting WBX Node...")\n"
+			cd $wbxdir
+			forever start app.js --genesis genesisBlock.wbx.json --config config.wbx.json >&- 2>&-
 			cd $parent
-			echo -e "$(green "    ✔ BPL Node was successfully started")\n"
+			echo -e "$(green "    ✔ WBX Node was successfully started")\n"
 			sleep 1
 			proc_vars
-			echo -e "\n$(green "       BPL Node started with:")"
+			echo -e "\n$(green "       WBX Node started with:")"
 			echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
-			echo -e "$(green "   and Work Directory: $bpldir")\n"
+			echo -e "$(green "   and Work Directory: $wbxdir")\n"
                 fi
 	else
-		echo -e "\n$(red "       ✘ No BPL Node installation is found")\n"
+		echo -e "\n$(red "       ✘ No WBX Node installation is found")\n"
 	fi
 pause
 }
@@ -1110,19 +1112,19 @@ pause
 # Node Status
 status(){
         proc_vars
-        if [ -e $bpldir/app.js ]; then
+        if [ -e $wbxdir/app.js ]; then
                 clear
                 asciiart
-                echo -e "\n$(green "       ✔ BPL Node installation found!")\n"
+                echo -e "\n$(green "       ✔ WBX Node installation found!")\n"
                 if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                        echo -e "$(green "      BPL Node process is working with:")"
+                        echo -e "$(green "      WBX Node process is working with:")"
                         echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
-                        echo -e "$(green "   and Work Directory: $bpldir")\n"
+                        echo -e "$(green "   and Work Directory: $wbxdir")\n"
                 else
-                        echo -e "\n$(red "       ✘ No BPL Node process is running")\n"
+                        echo -e "\n$(red "       ✘ No WBX Node process is running")\n"
                 fi
         else
-                echo -e "\n$(red "       ✘ No BPL Node installation is found")\n"
+                echo -e "\n$(red "       ✘ No WBX Node installation is found")\n"
         fi
 pause
 }
@@ -1131,15 +1133,15 @@ restart(){
 	asciiart
 	proc_vars
 	if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                echo -e "$(green "       Instance of BPL Node found with:")"
+                echo -e "$(green "       Instance of WBX Node found with:")"
                 echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
-                echo -e "$(green "       Directory: $bpldir")\n"
+                echo -e "$(green "       Directory: $wbxdir")\n"
 		echo -e "$(green "                Restarting...")"
 		forever restart $forever_process >&- 2>&-
-		echo -e "\n$(green "    ✔ BPL Node was successfully restarted")\n"
+		echo -e "\n$(green "    ✔ WBX Node was successfully restarted")\n"
 		pause
 	else
-		echo -e "\n$(red "       ✘ BPL Node process is not running")\n"
+		echo -e "\n$(red "       ✘ WBX Node process is not running")\n"
 		pause
 	fi
 }
@@ -1147,24 +1149,24 @@ restart(){
 # Stop Node
 killit(){
         proc_vars
-        if [ -e $bpldir/app.js ]; then
+        if [ -e $wbxdir/app.js ]; then
                 clear
                 asciiart
-                echo -e "\n$(green "       ✔ BPL Node installation found!")\n"
+                echo -e "\n$(green "       ✔ WBX Node installation found!")\n"
                 if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                        echo -e "$(green " A working instance of BPL Node was found with:")"
+                        echo -e "$(green " A working instance of WBX Node was found with:")"
                         echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
-                        echo -e "$(green "   and Work Directory: $bpldir")\n"
-			echo -e "$(green "            Stopping BPL Node...")\n"
-			cd $bpldir
+                        echo -e "$(green "   and Work Directory: $wbxdir")\n"
+			echo -e "$(green "            Stopping WBX Node...")\n"
+			cd $wbxdir
 			forever stop $forever_process >&- 2>&-
 			cd $parent
-			echo -e "$(green "    ✔ BPL Node was successfully stopped")\n"
+			echo -e "$(green "    ✔ WBX Node was successfully stopped")\n"
                 else
-			echo -e "\n$(red "       ✘ No BPL Node process is running")\n"
+			echo -e "\n$(red "       ✘ No WBX Node process is running")\n"
                 fi
         else
-                echo -e "\n$(red "       ✘ No BPL Node installation is found")\n"
+                echo -e "\n$(red "       ✘ No WBX Node installation is found")\n"
         fi
 pause
 }
@@ -1175,7 +1177,7 @@ log(){
 	echo -e "\n$(yellow " Use Ctrl+C to return to menu")\n"
 	proc_vars
 	trap : INT
-	tail -f $bpldir/logs/bpl.log
+	tail -f $wbxdir/logs/wbx.log
 #pause
 }
 
@@ -1202,9 +1204,9 @@ show_menus() {
 	echo "                  O P T I O N S"
 	echo "         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 	echo
-	echo "              1. Install BPL"
-	echo "              2. Reinstall BPL"
-	echo "              3. Update BPL"
+	echo "              1. Install WBX"
+	echo "              2. Reinstall WBX"
+	echo "              3. Update WBX"
 	echo "              4. Rebuild Database"
 	echo "              5. Set/Reset Secret"
 	echo "              6. OS Update"
@@ -1212,11 +1214,11 @@ show_menus() {
 	echo
 	echo "         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 	echo
-	echo "              A. BPL Start"
-	echo "              R. Restart BPL"
-	echo "              K. Kill BPL"
+	echo "              A. WBX Start"
+	echo "              R. Restart WBX"
+	echo "              K. Kill WBX"
 	echo "              S. Node Status"
-        echo "              L. Node Log"
+    echo "              L. Node Log"
 	echo "              0. Exit"
 	echo
 	tput sgr0
@@ -1229,8 +1231,8 @@ sub_menu() {
 	echo "               Additional Options"
 	echo "         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 	echo
-	echo "           1. Install BPL Cli"
-	echo "           2. Install BPL Explorer"
+	echo "           1. Install WBX Cli"
+	echo "           2. Install WBX Explorer"
 	echo "           3. Install Snapshot script"
 	echo "           4. Install Restart script"
 	echo "           5. Purge PostgeSQL"
@@ -1354,7 +1356,7 @@ else
 		touch ./.firstrun
 		echo -e "\n$(ired "    !!!  PLEASE REBOOT YOUR SYSTEM NOW  !!!    ") "
 		  echo -e "$(ired "    !!!   START THIS SCRIPT AGAIN AND   !!!    ") "
-		  echo -e "$(ired "    !!!  CHOOSE '1' TO INSTALL BPL NODE !!!    ") "
+		  echo -e "$(ired "    !!!  CHOOSE '1' TO INSTALL WBX NODE !!!    ") "
 		exit
 	fi
 fi
@@ -1375,3 +1377,4 @@ do
 	show_menus
 	read_options
 done
+
