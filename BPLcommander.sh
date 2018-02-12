@@ -75,13 +75,18 @@ fi
 
 EDIT=nano
 
+
 GIT_ORIGIN=bpl_mainnet
+
 
 LOC_SERVER="http://localhost:9030"
 
 ADDRESS=""
 
 SNAPDIR="$HOME/snapshots"
+
+#
+BPLNET=mainnet
 
 re='^[0-9]+$' # For numeric checks
 
@@ -799,17 +804,17 @@ function update_bpl {
 	if [ "$UP_TO_DATE" -ne 1 ]; then
 	        cd $bpldir
 #       	 forever stop app.js
-		TMP_PASS=$(jq -r '.forging.secret | @csv' config.$GIT_ORIGIN.json)
+		TMP_PASS=$(jq -r '.forging.secret | @csv' config.$BPLNET.json)
 		mv config.mainnet.json ../
 	        git pull origin $GIT_ORIGIN
 		git checkout $GIT_ORIGIN
 	        npm install
 		sleep 1
 
-		if [ ! -e config.$GIT_ORIGIN.json ]; then
-			mv ../config.$GIT_ORIGIN.json .
+		if [ ! -e config.$BPLNET.json ]; then
+			mv ../config.$BPLNET.json .
 		else
-			jq -r '.forging.secret = ['"$TMP_PASS"']' config.$GIT_ORIGIN.json > config.$GIT_ORIGIN.tmp && mv config.$GIT_ORIGIN.tmp config.$GIT_ORIGIN.json
+			jq -r '.forging.secret = ['"$TMP_PASS"']' config.$BPLNET.json > config.$BPLNET.tmp && mv config.$BPLNET.tmp config.$BPLNET.json
 		fi
 
 		unset TMP_PASS
@@ -831,7 +836,7 @@ function secret {
     read -e -r -p ": " secret
 
     cd $bpldir
-    jq -r ".forging.secret = [\"$secret\"]" config.$GIT_ORIGIN.json > config.$GIT_ORIGIN.tmp && mv config.$GIT_ORIGIN.tmp config.$GIT_ORIGIN.json
+    jq -r ".forging.secret = [\"$secret\"]" config.$BPLNET.json > config.$BPLNET.tmp && mv config.$BPLNET.tmp config.$BPLNET.json
 }
 
 ### Menu Options ###
