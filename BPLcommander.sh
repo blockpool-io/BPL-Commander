@@ -75,7 +75,7 @@ fi
 
 EDIT=nano
 
-GIT_ORIGIN=mainnet
+GIT_ORIGIN=bpl_mainnet
 
 LOC_SERVER="http://localhost:9030"
 
