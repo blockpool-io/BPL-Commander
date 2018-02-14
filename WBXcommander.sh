@@ -712,8 +712,8 @@ function inst_WBX {
 	cd $HOME
         mkdir WBX-node
         git clone https://github.com/blockpool-io/BPL-node.git 2>/dev/null
-	mv BPL-node $GIT_ORIGIN 2>/dev/null
-        cd $GIT_ORIGIN 2>/dev/null
+	mv BPL-node WBX-node
+        cd WBX-node
 	git checkout $GIT_ORIGIN 2>/dev/null
 	git pull origin $GIT_ORIGIN 2>/dev/null
         npm install grunt-cli -g 2>/dev/null
