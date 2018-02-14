@@ -3,8 +3,7 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #                                                     #
 #                 WBX Commander Script                #
-#                by locohammerhead,cyrus19901 	      #
-#			   and                	      #
+#                by locohammerhead and                #
 #           tharude a.k.a The Forging Penguin         #
 #         thanks ViperTKD for the helping hand        #
 #                 19/01/2017 ARK Team                 #
@@ -44,7 +43,7 @@ if [ "$(id -u)" = "0" ]; then
 	echo -e "\n$(ired " !!! This script should NOT be started using sudo or as the root user !!! ") "
 	echo -e "\nUse $(green "bash WBXcommander.sh") as a REGULAR user instead"
 	echo -e "Execute ONCE $(green "chmod +x WBXcommander.sh") followed by $(green "ENTER")"
-	echo -e "and start it only by $(green "./wbxcommander.sh") as regular user after\n"
+	echo -e "and start it only by $(green "./WBXcommander.sh") as regular user after\n"
 	exit 1
 fi
 
@@ -78,25 +77,28 @@ EDIT=nano
 
 GIT_ORIGIN=wbx
 
-LOC_SERVER="http://localhost:9032"
+LOC_SERVER="http://localhost:9030"
 
 ADDRESS=""
 
 SNAPDIR="$HOME/snapshots"
+
+#
+WBXNET=mainnet
 
 re='^[0-9]+$' # For numeric checks
 
 #pubkey="02a3e3e5fc36565ab4275ddfee1592667f6c46f5e9aa7528499511d65c5e82a7db"
 
 # Logfile
-log="install_wbx.log"
+log="install_WBX.log"
 
 #~ SEED NODES ~#
-seed0=("165.227.224.117:9032" "seed01")
-seed1=("165.227.239.66:9032" "seed02")
-seed2=("138.68.183.82:9032" "seed03")
-seed3=("178.62.23.57:9032" "seed04")
-seed4=("178.62.50.166:9032" "seed05")
+seed0=("13.56.163.57:9030" "seed01")
+seed1=("54.183.132.15:9030" "seed02")
+seed2=("54.183.69.30:9030" "seed03")
+seed3=("54.183.152.67:9030" "seed04")
+seed4=("54.183.22.145:9030" "seed05")
 
 #~ API CALL ~#
 apicall="/api/loader/status/sync"
@@ -124,6 +126,7 @@ function asciiart {
 clear
 tput bold; tput setaf 2
 cat << "EOF"
+
 
                                $$\      $$\ $$$$$$$\  $$\   $$\                          
                                $$ | $\  $$ |$$  __$$\ $$ |  $$ |                                         
@@ -198,7 +201,7 @@ function top_level_parent_pid {
 
 # Process management variables
 function proc_vars {
-        node=`pgrep -a "node" | grep BPL-node | awk '{print $1}'`
+        node=`pgrep -a "node" | grep WBX-node | awk '{print $1}'`
         if [ "$node" == "" ] ; then
                 node=0
         fi
@@ -213,10 +216,10 @@ function proc_vars {
 	top_lvl=$(top_level_parent_pid $node)
 	
         # Looking for WBX-node installations and performing actions
-        wbxdir=`locate -b "\BPL-node"`
+        WBXdir=`locate -b "\WBX-node"`
 
         # Getting the parent of the install path
-        parent=`dirname $wbxdir 2>&1`
+        parent=`dirname $WBXdir 2>&1`
 
         # Forever Process ID
         forever_process=`forever --plain list | grep $node | sed -nr 's/.*\[(.*)\].*/\1/p'`
@@ -227,14 +230,14 @@ function proc_vars {
 
 #PSQL Queries
 query() {
-PUBKEY="$(psql -d bpl_wbx -t -c 'SELECT ENCODE("publicKey",'"'"'hex'"'"') as "publicKey" FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-DNAME="$(psql -d bpl_wbx -t -c 'SELECT username FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-PROD_BLOCKS="$(psql -d bpl_wbx -t -c 'SELECT producedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-MISS_BLOCKS="$(psql -d bpl_wbx -t -c 'SELECT missedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-#BALANCE="$(psql -d bpl_wbx -t -c 'SELECT (balance/100000000.0) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | sed -e 's/^[[:space:]]*//')"
-BALANCE="$(psql -d bpl_wbx -t -c 'SELECT to_char(("balance"/100000000.0), '"'FM 999,999,999,990D00000000'"' ) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-HEIGHT="$(psql -d bpl_wbx -t -c 'SELECT height FROM blocks ORDER BY HEIGHT DESC LIMIT 1;' | xargs)"
-RANK="$(psql -d bpl_wbx -t -c 'WITH RANK AS (SELECT DISTINCT "publicKey", "vote", "round", row_number() over (order by "vote" desc nulls last) as "rownum" FROM mem_delegates where "round" = (select max("round") from mem_delegates) ORDER BY "vote" DESC) SELECT "rownum" FROM RANK WHERE "publicKey" = '"'03cfafb2ca8cf7ce70f848456b1950dc7901946f93908e4533aace997c242ced8a'"';' | xargs)"
+PUBKEY="$(psql -d WBX_mainnet -t -c 'SELECT ENCODE("publicKey",'"'"'hex'"'"') as "publicKey" FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+DNAME="$(psql -d WBX_mainnet -t -c 'SELECT username FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+PROD_BLOCKS="$(psql -d WBX_mainnet -t -c 'SELECT producedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+MISS_BLOCKS="$(psql -d WBX_mainnet -t -c 'SELECT missedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+#BALANCE="$(psql -d WBX_mainnet -t -c 'SELECT (balance/100000000.0) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | sed -e 's/^[[:space:]]*//')"
+BALANCE="$(psql -d WBX_mainnet -t -c 'SELECT to_char(("balance"/100000000.0), '"'FM 999,999,999,990D00000000'"' ) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+HEIGHT="$(psql -d WBX_mainnet -t -c 'SELECT height FROM blocks ORDER BY HEIGHT DESC LIMIT 1;' | xargs)"
+RANK="$(psql -d WBX_mainnet -t -c 'WITH RANK AS (SELECT DISTINCT "publicKey", "vote", "round", row_number() over (order by "vote" desc nulls last) as "rownum" FROM mem_delegates where "round" = (select max("round") from mem_delegates) ORDER BY "vote" DESC) SELECT "rownum" FROM RANK WHERE "publicKey" = '"'03cfafb2ca8cf7ce70f848456b1950dc7901946f93908e4533aace997c242ced8a'"';' | xargs)"
 }
 
 # Stats Address Change
@@ -242,7 +245,7 @@ change_address() {
 	echo "$(yellow "   Enter your delegate address for Stats")"
 	echo "$(yellow "    WITHOUT QUOTES, followed by 'ENTER'")"
 	read -e -r -p "$(yellow " :") " inaddress
-	while [ ! "${inaddress:0:1}" == "W" ] ; do
+	while [ ! "${inaddress:0:1}" == "B" ] ; do
 		echo -e "\n$(ired "   Enter delegate ADDRESS, NOT the SECRET!")\n"
 		read -e -r -p "$(yellow " :") " inaddress
 	done
@@ -308,12 +311,12 @@ while true; do
 	echo -e "$(green "      WBX Balance      : ")$(yellow "$BALANCE")"
 	echo
 	echo -e "\n$(yellow "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")"
-        if [ -e $wbxdir/app.js ]; then
+        if [ -e $WBXdir/app.js ]; then
                 echo -e "\n$(green "       ✔ WBX Node installation found!")\n"
                 if [ "$node" != "" ] && [ "$node" != "0" ]; then
                         echo -e "$(green "      WBX Node process is running with:")"
                         echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
-                        echo -e "$(green "   and Work Directory: $wbxdir")\n"
+                        echo -e "$(green "   and Work Directory: $WBXdir")\n"
                 else
                         echo -e "\n$(red "       ✘ No WBX Node process is running")\n"
                 fi
@@ -338,7 +341,7 @@ function stats {
 	if [ "$node" != "" ] && [ "$node" != "0" ]; then
 		echo -e "$(green "       Instance of WBX Node found with:")"
 		echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
-		echo -e "$(green "       Directory: $wbxdir")\n"
+		echo -e "$(green "       Directory: $WBXdir")\n"
 	else
 		echo -e "\n$(red "       ✘ WBX Node process is not running")\n"
 		pause
@@ -482,7 +485,7 @@ function log_rotate {
 		if [ ! -f /etc/logrotate.d/WBX-logrotate ]; then
 			echo -e " Setting up Logrotate for WBX node log files."
 			sudo bash -c "cat << 'EOF' >> /etc/logrotate.d/WBX-logrotate
-$wbxdir/logs/wbx.log {
+$WBXdir/logs/WBX.log {
         size=50M
         copytruncate
         create 660 $USER $USER
@@ -505,9 +508,9 @@ EOF"
 # GIT Update Check
 function git_upd_check {
 
-	if [ -d "$wbxdir" ]; then
+	if [ -d "$WBXdir" ]; then
 
-		cd $wbxdir
+		cd $WBXdir
 
 		git remote update >&- 2>&-
 		UPSTREAM=${1:-'@{u}'}
@@ -611,7 +614,7 @@ if [ "$(ls -A $SNAPDIR)" ]; then
         ## Numeric checks
                 if [ $REPLY -le ${#snapshots[*]} ]; then
                         echo -e "$(yellow "\n         Restoring snapshot ${snapshots[$((REPLY-1))]}")\n"
-			pg_restore -O -j 8 -d bpl_wbx $SNAPDIR/${snapshots[$(($REPLY-1))]} 2>/dev/null
+			pg_restore -O -j 8 -d WBX_mainnet $SNAPDIR/${snapshots[$(($REPLY-1))]} 2>/dev/null
 			echo -e "$(green "   Snapshot ${snapshots[$(($REPLY-1))]} was restored successfully")\n"
                 else
                         echo -e "$(red "\n        Value is out of list range!\n")"
@@ -635,7 +638,7 @@ else
                         if [[ "$YN" =~ [Yy]$ ]]; then
                                 #here calling the db_restore function
 				echo -e "$(yellow "\n   Restoring $SNAPDIR/current ... ")"
-                                pg_restore -O -j 8 -d bpl_wbx $SNAPDIR/current 2>/dev/null
+                                pg_restore -O -j 8 -d WBX_mainnet $SNAPDIR/current 2>/dev/null
 				echo -e "$(green "\n    Current snapshot has been restored\n")"
                         fi
         else
@@ -704,22 +707,21 @@ function nvm {
 }
 
 # Install WBX Node
-function inst_wbx {
+function inst_WBX {
 #	proc_vars
 	cd $HOME
-        mkdir BPL-node
-        git clone https://github.com/blockpool-io/BPL-node.git 2>/dev/null
-        cd BPL-node
+        mkdir WBX-node
+        git clone https://github.com/blockpool-io/WBX-node.git 2>/dev/null
+        cd WBX-node
 	git checkout $GIT_ORIGIN 2>/dev/null
 	git pull origin $GIT_ORIGIN 2>/dev/null
         npm install grunt-cli -g 2>/dev/null
         npm install libpq 2>/dev/null
         npm install secp256k1 2>/dev/null
-        npm install 2>/dev/null
         npm install bindings 2>/dev/null
         git submodule init 2>/dev/null
         git submodule update 2>/dev/null
-
+        npm install 2>/dev/null
 }
 
 # Create WBX user and DB
@@ -729,15 +731,15 @@ function create_db {
                 sudo service postgresql start
         fi
         sleep 1
-      sudo -u postgres dropdb --if-exists bpl_wbx
-      sleep 1
-      sudo -u postgres dropuser --if-exists $USER # 2>&1
-      sleep 1
+#       sudo -u postgres dropdb --if-exists WBX_mainnet
+#       sleep 1
+#       sudo -u postgres dropuser --if-exists $USER # 2>&1
+#       sleep 1
 	sudo -u postgres psql -c "update pg_database set encoding = 6, datcollate = 'en_US.UTF8', datctype = 'en_US.UTF8' where datname = 'template0';" >&- 2>&-
 	sudo -u postgres psql -c "update pg_database set encoding = 6, datcollate = 'en_US.UTF8', datctype = 'en_US.UTF8' where datname = 'template1';" >&- 2>&-
         sudo -u postgres psql -c "CREATE USER $USER WITH PASSWORD 'Password' CREATEDB;" >&- 2>&-
         sleep 1
-        createdb bpl_wbx
+        createdb WBX_mainnet
 }
 
 # Check if DB exists
@@ -747,7 +749,7 @@ function db_exists {
                 sudo service postgresql start
         fi
 
-        if [[ ! $(sudo -u postgres psql bpl_wbx -c '\q' 2>&1) ]]; then
+        if [[ ! $(sudo -u postgres psql WBX_mainnet -c '\q' 2>&1) ]]; then
                 read -r -n 1 -p "$(yellow "  Database exists! Do you want to drop it? (y/n):") " YN
                         if [[ "$YN" =~ [Yy]$ ]]; then
                                 drop_db;
@@ -782,7 +784,7 @@ function drop_db {
         if [ -z "$pgres" ]; then
                 sudo service postgresql start
         fi
-        dropdb --if-exists bpl_wbx
+        dropdb --if-exists WBX_mainnet
 }
 
 function drop_user {
@@ -797,43 +799,43 @@ function drop_user {
         fi
 }
 
-function update_wbx {
+function update_WBX {
 	if [ "$UP_TO_DATE" -ne 1 ]; then
-	        cd $wbxdir
+	        cd $WBXdir
 #       	 forever stop app.js
-		TMP_PASS=$(jq -r '.forging.secret | @csv' config.$GIT_ORIGIN.json)
-		mv config.wbx.json ../
+		TMP_PASS=$(jq -r '.forging.secret | @csv' config.$WBXNET.json)
+		mv config.mainnet.json ../
 	        git pull origin $GIT_ORIGIN
 		git checkout $GIT_ORIGIN
 	        npm install
 		sleep 1
 
-		if [ ! -e config.$GIT_ORIGIN.json ]; then
-			mv ../config.$GIT_ORIGIN.json .
+		if [ ! -e config.$WBXNET.json ]; then
+			mv ../config.$WBXNET.json .
 		else
-			jq -r '.forging.secret = ['"$TMP_PASS"']' config.$GIT_ORIGIN.json > config.$GIT_ORIGIN.tmp && mv config.$GIT_ORIGIN.tmp config.$GIT_ORIGIN.json
+			jq -r '.forging.secret = ['"$TMP_PASS"']' config.$WBXNET.json > config.$WBXNET.tmp && mv config.$WBXNET.tmp config.$WBXNET.json
 		fi
 
 		unset TMP_PASS
 #		forever restart $forever_process
-#	        forever start app.js --genesis genesisBlock.wbx.json --config config.wbx.json
+#	        forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json
 	else
 		echo "WBX Node is already up to date!"
 		sleep 2
 	fi
 }
 
-# Put the password in config.wbx.json
+# Put the password in config.mainnet.json
 function secret {
     echo -e "\n"
 
-    #Put check if wbxdir is empty, if it is stays only config.wbx.json
+    #Put check if WBXdir is empty, if it is stays only config.mainnet.json
     echo -e "$(yellow " Enter (copy/paste) your private key (secret)")"
     echo -e "$(yellow "    (WITHOUT QUOTES!) followed by 'Enter'")"
     read -e -r -p ": " secret
 
-    cd $wbxdir
-    jq -r ".forging.secret = [\"$secret\"]" config.$GIT_ORIGIN.json > config.$GIT_ORIGIN.tmp && mv config.$GIT_ORIGIN.tmp config.$GIT_ORIGIN.json
+    cd $WBXdir
+    jq -r ".forging.secret = [\"$secret\"]" config.$WBXNET.json > config.$WBXNET.tmp && mv config.$WBXNET.tmp config.$WBXNET.json
 }
 
 ### Menu Options ###
@@ -842,14 +844,14 @@ function secret {
 one(){
 	cd $HOME
 	proc_vars
-	if [ -e $wbxdir/app.js ]; then
+	if [ -e $WBXdir/app.js ]; then
 		clear
 		asciiart
 		echo -e "\n$(green "       ✔ WBX Node is already installed!")\n"
 		if [ "$node" != "" ] && [ "$node" != "0" ]; then
                 	echo -e "$(green "A working instance of WBX Node is found with:")"
                 	echo -e "$(green "System PID: $node, Forever PID $forever_process")"
-        	        echo -e "$(green "and Work Directory: $wbxdir")\n"
+        	        echo -e "$(green "and Work Directory: $WBXdir")\n"
                 fi
 		pause
 	else
@@ -857,7 +859,7 @@ one(){
 		asciiart
 		echo -e "$(yellow "           Installing WBX node....")"
 		create_db
-		inst_wbx
+		inst_WBX
 		clear
 		asciiart
 		echo -e "$(green "          ✔ WBX node was installed")\n"
@@ -865,7 +867,7 @@ one(){
 		sleep 1
 		proc_vars
 		log_rotate
-		config="$parent/config.wbx.json"
+		config="$parent/config.mainnet.json"
 #		echo "$config" 2>/dev/null
 #		pause
 		if  [ ! -e $config ] ; then
@@ -885,43 +887,43 @@ two(){
 	read -e -r -p "$(red "   Are you sure that you want to proceed? (Y/N): ")" -i "N" keys
 	if [ "$keys" == "Y" ]; then
 		proc_vars
-        	if [ -e $wbxdir/app.js ]; then
+        	if [ -e $WBXdir/app.js ]; then
                 	clear
                 	asciiart
-                	echo -e "\n$(green " ✔ WBX Node installation found in $wbxdir")\n"
+                	echo -e "\n$(green " ✔ WBX Node installation found in $WBXdir")\n"
                 	if [ "$node" != "" ] && [ "$node" != "0" ]; then
                         	echo -e "$(green "A working instance of WBX Node is found with:")"
                         	echo -e "$(green "System PID: $node, Forever PID $forever_process")"
 				echo -e "$(yellow "           Stopping WBX node ...")\n"
-				cd $wbxdir
+				cd $WBXdir
 				forever --plain stop $forever_process >&- 2>&-
 				cd $parent
                 	fi
 			echo -e "$(yellow "    Backing up configuration file to $parent")\n"
 			sleep 1
-			if [ -e $parent/config.wbx.json ] ; then
+			if [ -e $parent/config.mainnet.json ] ; then
 				read -e -r -p "$(yellow "    Backup file exists! Overwrite? (Y/N): ")" -i "Y" keys
 				if [ "$keys" == "Y" ]; then
-					cp $wbxdir/config.wbx.json $parent
+					cp $WBXdir/config.mainnet.json $parent
 					cd $parent
 				fi
 			else
-				cp $wbxdir/config.wbx.json $parent
+				cp $WBXdir/config.mainnet.json $parent
 				cd $parent
 			fi
 			echo -e "$(yellow "        Removing WBX Node directory...")\n"
 			sleep 1
-			rm -rf $wbxdir
+			rm -rf $WBXdir
 			drop_db
 			drop_user
 			one
 			echo ""
-			if [ -e $parent/config.wbx.json ] ; then
+			if [ -e $parent/config.mainnet.json ] ; then
 				read -e -r -p "$(yellow " Do you want to restore your config? (Y/N): ")" -i "Y" keys
 #				echo "Break1"; pause
 				if [ "$keys" == "Y" ]; then
-					cp $parent/config.wbx.json $wbxdir
-					echo -e "\n$(green " ✔ Config was restored in $wbxdir")\n"
+					cp $parent/config.mainnet.json $WBXdir
+					echo -e "\n$(green " ✔ Config was restored in $WBXdir")\n"
 					read -e -r -p "$(yellow " Do you want to start WBX Node now? (Y/N): ")" -i "Y" keys
 					if [ "$keys" == "Y" ]; then
 						start
@@ -940,11 +942,11 @@ two(){
 			sleep 1
 			one
 			proc_vars
-			if [ -e $parent/config.wbx.json ] ; then
+			if [ -e $parent/config.mainnet.json ] ; then
 				read -e -r -p "$(yellow " Do you want to restore your config? (Y/N): ")" -i "Y" keys
 				if [ "$keys" == "Y" ]; then
-					cp $parent/config.wbx.json $wbxdir
-					echo -e "\n$(green " ✔ Config was restored in $wbxdir")\n"
+					cp $parent/config.mainnet.json $WBXdir
+					echo -e "\n$(green " ✔ Config was restored in $WBXdir")\n"
 				fi
 			else
 				echo -e "\n$(yellow " No backup config was found in $parent")\n"
@@ -969,9 +971,9 @@ three(){
 	        if [ "$node" != "" ] && [ "$node" != "0" ]; then
         	        echo -e "$(green "       Instance of WBX Node found with:")"
                 	echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
-	                echo -e "$(green "       Directory: $wbxdir")\n"
-					echo -e "\n$(green "             Updating WBX Node...")\n"
-			update_wbx
+	                echo -e "$(green "       Directory: $WBXdir")\n"
+			echo -e "\n$(green "             Updating WBX Node...")\n"
+			update_WBX
 	                echo -e "$(green "                Restarting...")"
         	        forever restart $forever_process >&- 2>&-
                 	echo -e "\n$(green "    ✔ WBX Node was successfully restarted")\n"
@@ -979,8 +981,8 @@ three(){
 		else
                 	echo -e "\n$(red "       ✘ WBX Node process is not running")\n"
 			echo -e "$(green "            Updating WBX Node...")\n"
-			update_wbx
-			node app.js --genesis genesisBlock.wbx.json --config config.wbx.json >&- 2>&-
+			update_WBX
+			forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
 			echo -e "$(green "    ✔ WBX Node was successfully started")\n"
         	        pause
         	fi
@@ -997,9 +999,9 @@ four(){
         if [ "$node" != "" ] && [ "$node" != "0" ]; then
                 echo -e "$(green "       Instance of WBX Node found with:")"
                 echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
-                echo -e "$(green "       Directory: $wbxdir")\n"
+                echo -e "$(green "       Directory: $WBXdir")\n"
                 echo -e "\n$(green "            Stopping WBX Node...")\n"
-		cd $wbxdir
+		cd $WBXdir
 		forever stop $forever_process >&- 2>&-
 		echo -e "$(green "             Dropping WBX DB...")\n"
                 drop_db
@@ -1010,7 +1012,7 @@ four(){
 		# Here should come the snap choice
 		snap_menu
                 echo -e "$(green "            Starting WBX Node...")"
-		forever start app.js --genesis genesisBlock.wbx.json --config config.wbx.json >&- 2>&-
+		forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
                 echo -e "\n$(green "    ✔ WBX Node was successfully started")\n"
                 pause
         else
@@ -1024,8 +1026,8 @@ four(){
 		# Here should come the snap choice
 		snap_menu
 		echo -e "$(green "            Starting WBX Node...")"
-		cd $wbxdir
-                forever start app.js --genesis genesisBlock.wbx.json --config config.wbx.json >&- 2>&-
+		cd $WBXdir
+                forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
                 echo -e "$(green "    ✔ WBX Node was successfully started")\n"
                 pause
         fi
@@ -1042,7 +1044,7 @@ five(){
         	if [ "$node" != "" ] && [ "$node" != "0" ]; then
 			echo -e "\n$(green "       Instance of WBX Node found with:")"
 			echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
-			echo -e "$(green "       Directory: $wbxdir")\n"
+			echo -e "$(green "       Directory: $WBXdir")\n"
 			echo -e "$(green "                Restarting...")"
 	                forever restart $forever_process >&- 2>&-
 			echo -e "\n$(green "    ✔ WBX Node was successfully restarted")\n"
@@ -1050,7 +1052,7 @@ five(){
 		else
 			echo -e "\n$(red "       ✘ WBX Node process is not running")\n"
 			echo -e "$(green "            Starting WBX Node...")\n"
-			forever start app.js --genesis genesisBlock.wbx.json --config config.wbx.json >&- 2>&-
+			forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
 			echo -e "$(green "    ✔ WBX Node was successfully started")\n"
 			pause
 		fi
@@ -1083,25 +1085,25 @@ sub_menu
 # Start WBX Node
 start(){
         proc_vars
-        if [ -e $wbxdir/app.js ]; then
+        if [ -e $WBXdir/app.js ]; then
                 clear
                 asciiart
                 echo -e "\n$(green "       ✔ WBX Node installation found!")\n"
                 if [ "$node" != "" ] && [ "$node" != "0" ]; then
                         echo -e "$(green " A working instance of WBX Node was found with:")"
                         echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
-                        echo -e "$(green "   and Work Directory: $wbxdir")\n"
+                        echo -e "$(green "   and Work Directory: $WBXdir")\n"
 		else
 			echo -e "$(green "            Starting WBX Node...")\n"
-			cd $wbxdir
-			forever start app.js --genesis genesisBlock.wbx.json --config config.wbx.json >&- 2>&-
+			cd $WBXdir
+			forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
 			cd $parent
 			echo -e "$(green "    ✔ WBX Node was successfully started")\n"
 			sleep 1
 			proc_vars
 			echo -e "\n$(green "       WBX Node started with:")"
 			echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
-			echo -e "$(green "   and Work Directory: $wbxdir")\n"
+			echo -e "$(green "   and Work Directory: $WBXdir")\n"
                 fi
 	else
 		echo -e "\n$(red "       ✘ No WBX Node installation is found")\n"
@@ -1112,14 +1114,14 @@ pause
 # Node Status
 status(){
         proc_vars
-        if [ -e $wbxdir/app.js ]; then
+        if [ -e $WBXdir/app.js ]; then
                 clear
                 asciiart
                 echo -e "\n$(green "       ✔ WBX Node installation found!")\n"
                 if [ "$node" != "" ] && [ "$node" != "0" ]; then
                         echo -e "$(green "      WBX Node process is working with:")"
                         echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
-                        echo -e "$(green "   and Work Directory: $wbxdir")\n"
+                        echo -e "$(green "   and Work Directory: $WBXdir")\n"
                 else
                         echo -e "\n$(red "       ✘ No WBX Node process is running")\n"
                 fi
@@ -1135,7 +1137,7 @@ restart(){
 	if [ "$node" != "" ] && [ "$node" != "0" ]; then
                 echo -e "$(green "       Instance of WBX Node found with:")"
                 echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
-                echo -e "$(green "       Directory: $wbxdir")\n"
+                echo -e "$(green "       Directory: $WBXdir")\n"
 		echo -e "$(green "                Restarting...")"
 		forever restart $forever_process >&- 2>&-
 		echo -e "\n$(green "    ✔ WBX Node was successfully restarted")\n"
@@ -1149,16 +1151,16 @@ restart(){
 # Stop Node
 killit(){
         proc_vars
-        if [ -e $wbxdir/app.js ]; then
+        if [ -e $WBXdir/app.js ]; then
                 clear
                 asciiart
                 echo -e "\n$(green "       ✔ WBX Node installation found!")\n"
                 if [ "$node" != "" ] && [ "$node" != "0" ]; then
                         echo -e "$(green " A working instance of WBX Node was found with:")"
                         echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
-                        echo -e "$(green "   and Work Directory: $wbxdir")\n"
+                        echo -e "$(green "   and Work Directory: $WBXdir")\n"
 			echo -e "$(green "            Stopping WBX Node...")\n"
-			cd $wbxdir
+			cd $WBXdir
 			forever stop $forever_process >&- 2>&-
 			cd $parent
 			echo -e "$(green "    ✔ WBX Node was successfully stopped")\n"
@@ -1177,7 +1179,7 @@ log(){
 	echo -e "\n$(yellow " Use Ctrl+C to return to menu")\n"
 	proc_vars
 	trap : INT
-	tail -f $wbxdir/logs/wbx.log
+	tail -f $WBXdir/logs/WBX.log
 #pause
 }
 
@@ -1218,7 +1220,7 @@ show_menus() {
 	echo "              R. Restart WBX"
 	echo "              K. Kill WBX"
 	echo "              S. Node Status"
-    echo "              L. Node Log"
+        echo "              L. Node Log"
 	echo "              0. Exit"
 	echo
 	tput sgr0
@@ -1377,4 +1379,3 @@ do
 	show_menus
 	read_options
 done
-
