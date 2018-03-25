@@ -129,23 +129,23 @@ clear
 tput bold; tput setaf 2
 cat << "EOF"
 
-                               $$$$$$$\  $$$$$$$\  $$\                                           
-                               $$  __$$\ $$  __$$\ $$ |                                          
-                               $$ |  $$ |$$ |  $$ |$$ |                                          
-                               $$$$$$$\ |$$$$$$$  |$$ |                                          
-                               $$  __$$\ $$  ____/ $$ |                                          
-                               $$ |  $$ |$$ |      $$ |                                          
- $$$$$$\                       $$$$$$$  |$$ |      $$$$$$$$\             $$\                     
-$$  __$$\                      \_______/ \__|      \________|            $$ |                    
-$$ /  \__|$$$$$$\  $$$$$$\$$$$\  $$$$$$\$$$$\   $$$$$$\  $$$$$$$\   $$$$$$$ | $$$$$$\   $$$$$$\  
-$$ |     $$  __$$\ $$  _$$  _$$\ $$  _$$  _$$\  \____$$\ $$  __$$\ $$  __$$ |$$  __$$\ $$  __$$\ 
+                               $$$$$$$\  $$$$$$$\  $$\
+                               $$  __$$\ $$  __$$\ $$ |
+                               $$ |  $$ |$$ |  $$ |$$ |
+                               $$$$$$$\ |$$$$$$$  |$$ |
+                               $$  __$$\ $$  ____/ $$ |
+                               $$ |  $$ |$$ |      $$ |
+ $$$$$$\                       $$$$$$$  |$$ |      $$$$$$$$\             $$\
+$$  __$$\                      \_______/ \__|      \________|            $$ |
+$$ /  \__|$$$$$$\  $$$$$$\$$$$\  $$$$$$\$$$$\   $$$$$$\  $$$$$$$\   $$$$$$$ | $$$$$$\   $$$$$$\
+$$ |     $$  __$$\ $$  _$$  _$$\ $$  _$$  _$$\  \____$$\ $$  __$$\ $$  __$$ |$$  __$$\ $$  __$$\
 $$ |     $$ /  $$ |$$ / $$ / $$ |$$ / $$ / $$ | $$$$$$$ |$$ |  $$ |$$ /  $$ |$$$$$$$$ |$$ |  \__|
-$$ |  $$\$$ |  $$ |$$ | $$ | $$ |$$ | $$ | $$ |$$  __$$ |$$ |  $$ |$$ |  $$ |$$   ____|$$ |      
-\$$$$$$  \$$$$$$  |$$ | $$ | $$ |$$ | $$ | $$ |\$$$$$$$ |$$ |  $$ |\$$$$$$$ |\$$$$$$$\ $$ |      
- \______/ \______/ \__| \__| \__|\__| \__| \__| \_______|\__|  \__| \_______| \_______|\__|      
-                                                                                                 
-                                                                                                 
-                                                                                                 
+$$ |  $$\$$ |  $$ |$$ | $$ | $$ |$$ | $$ | $$ |$$  __$$ |$$ |  $$ |$$ |  $$ |$$   ____|$$ |
+\$$$$$$  \$$$$$$  |$$ | $$ | $$ |$$ | $$ | $$ |\$$$$$$$ |$$ |  $$ |\$$$$$$$ |\$$$$$$$\ $$ |
+ \______/ \______/ \__| \__| \__|\__| \__| \__| \_______|\__|  \__| \_______| \_______|\__|
+
+
+
                                 W E L C O M E  A B O A R D !
 
 EOF
@@ -215,7 +215,7 @@ function proc_vars {
 
         # Find the top level process of node
 	top_lvl=$(top_level_parent_pid $node)
-	
+
         # Looking for BPL-node installations and performing actions
         bpldir=`locate -b "\BPL-node"`
 
@@ -243,16 +243,29 @@ RANK="$(psql -d bpl_mainnet -t -c 'WITH RANK AS (SELECT DISTINCT "publicKey", "v
 
 # Stats Address Change
 change_address() {
-	echo "$(yellow "   Enter your delegate address for Stats")"
-	echo "$(yellow "    WITHOUT QUOTES, followed by 'ENTER'")"
-	read -e -r -p "$(yellow " :") " inaddress
-	while [ ! "${inaddress:0:1}" == "B" ] ; do
-		echo -e "\n$(ired "   Enter delegate ADDRESS, NOT the SECRET!")\n"
-		read -e -r -p "$(yellow " :") " inaddress
-	done
-	ADDRESS=$inaddress
-#	sed -i "s#\(.*ADDRESS\=\)\( .*\)#\1 "\"$inaddress\""#" $DIR/$BASH_SOURCE
-	sed -i "1,/\(.*ADDRESS\=\)/s#\(.*ADDRESS\=\)\(.*\)#\1"\"$inaddress\""#" $DIR/$BASH_SOURCE
+    DID_BREAK=0
+
+    echo -e "\n$(yellow " Press CTRL+C followed by ENTER to return to menu")\n"
+    echo "$(yellow "   Enter your delegate address for Stats")"
+    echo "$(yellow "    WITHOUT QUOTES, followed by 'ENTER'")"
+    trap "DID_BREAK=1" SIGINT
+    read -e -r -p "$(yellow " :") " inaddress
+    while [ ! "${inaddress:0:1}" == "B" ] ; do
+        if [ "$DID_BREAK" -eq 0 ] ; then
+            echo -e "\n$(yellow " Use Ctrl+C followed by ENTER to return to menu")\n"
+            echo -e "\n$(ired "   Enter delegate ADDRESS, NOT the SECRET!")\n"
+            read -e -r -p "$(yellow " :") " inaddress
+        else
+            break
+        fi
+    done
+    if [ "$DID_BREAK" -eq 1 ] ; then
+        init
+    else
+        ADDRESS=$inaddress
+    #   sed -i "s#\(.*ADDRESS\=\)\( .*\)#\1 "\"$inaddress\""#" $DIR/$BASH_SOURCE
+        sed -i "1,/\(.*ADDRESS\=\)/s#\(.*ADDRESS\=\)\(.*\)#\1"\"$inaddress\""#" $DIR/$BASH_SOURCE
+    fi
 }
 
 
