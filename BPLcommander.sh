@@ -1075,10 +1075,9 @@ do
 # HERE COMES THE GITHUB CHECK
         git_upd_check
         sub_menu
-        read_sub_options
+        read_sub_options || break
 done
 
-sub_menu
 ##turn
 #pause
 }
@@ -1280,7 +1279,7 @@ read_sub_options(){
 		5) subfive ;;
 		6) subsix ;;
 		7) seven ;;
-		0) break ;;
+		0) return 1 ;;
 		*) echo -e "$(red "             Incorrect option!")" && sleep 1
 	esac
 }
