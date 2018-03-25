@@ -1270,7 +1270,7 @@ read_options(){
 
 read_sub_options(){
 	local choice1
-	read -p "          Enter choice [1 - 7]: " choice1
+	read -p "          Enter choice [0 - 6]: " choice1
 	case $choice1 in
 		1) subone ;;
 		2) subtwo ;;
@@ -1278,7 +1278,6 @@ read_sub_options(){
 		4) four ;;
 		5) subfive ;;
 		6) subsix ;;
-		7) seven ;;
 		0) return 1 ;;
 		*) echo -e "$(red "             Incorrect option!")" && sleep 1
 	esac
