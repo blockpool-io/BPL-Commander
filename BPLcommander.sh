@@ -112,7 +112,7 @@ apicall="/api/loader/status/sync"
 # ----------------------------------
 
 # Install prereq packages array
-declare -a array=("postgresql" "postgresql-contrib" "libpq-dev" "build-essential" "python" "git" "curl" "jq" "libtool" "autoconf" "locales" "automake" "locate" "wget" "zip" "unzip" "htop" "nmon" "iftop")
+declare -a array=("postgresql" "postgresql-contrib" "libpq-dev" "build-essential" "python" "git" "curl" "jq" "libtool" "autoconf" "locales" "automake" "locate" "wget" "zip" "unzip" "htop" "nmon" "iftop" "update-notifier")
 
 #~ Network height checker ~#
 declare -a nodes=(seed0[@] seed1[@] seed2[@] seed3[@] seed4[@])
