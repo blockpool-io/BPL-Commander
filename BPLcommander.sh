@@ -301,7 +301,7 @@ while true; do
 	BLOCK_SUM=$((MISS_BLOCKS+$PROD_BLOCKS))
 
 	RATIO=$((20000 * PROD_BLOCKS / BLOCK_SUM % 2 + 10000 * PROD_BLOCKS / BLOCK_SUM))
-	RATIO=$(sed 's/..$/.&/;t;s/^.$/.0&/' <<< $RATIO)
+	[[ $PROD_BLOCKS == 0 ]] && RATIO=0 || RATIO=$(sed 's/..$/.&/;t;s/^.$/.0&/' <<< $RATIO)
 
 	pos=0
 	for position in $queue
