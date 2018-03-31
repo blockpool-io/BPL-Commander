@@ -298,6 +298,11 @@ while true; do
 	queue=`curl --connect-timeout 3 -f -s $LOC_SERVER/api/delegates/getNextForgers?limit=201 | jq ".delegates"`
 	is_forging=`curl -s --connect-timeout 1 $LOC_SERVER/api/delegates/forging/status?publicKey=$PUBKEY 2>/dev/null | jq ".enabled"`
 	is_syncing=`curl -s --connect-timeout 1 $LOC_SERVER/api/loader/status/sync 2>/dev/null | jq ".syncing"`
+	BLOCK_SUM=$((MISS_BLOCKS+$PROD_BLOCKS))
+
+	RATIO=$((20000 * PROD_BLOCKS / BLOCK_SUM % 2 + 10000 * PROD_BLOCKS / BLOCK_SUM))
+	RATIO=$(sed 's/..$/.&/;t;s/^.$/.0&/' <<< $RATIO)
+
 	pos=0
 	for position in $queue
 	do
@@ -322,6 +327,7 @@ while true; do
 #	echo -e "$(green "Public Key:")\n$(yellow "$PUBKEY")\n"
 	echo -e "$(green "      Forged Blocks    : ")$(yellow "$PROD_BLOCKS")"
 	echo -e "$(green "      Missed Blocks    : ")$(yellow "$MISS_BLOCKS")"
+	echo -e "$(green "      Productivity     : ")$(yellow "$RATIO"%)"
 	echo -e "$(green "      BPL Balance      : ")$(yellow "$BALANCE")"
 	echo
 	echo -e "\n$(yellow "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")"
