@@ -16,7 +16,7 @@
 # Line coloring functions
 
 function red {
-        echo -e "$(tput bold; tput setaf 1)$1$(tput sgr0)"
+  echo -e "$(tput bold; tput setaf 1)$1$(tput sgr0)"
 }
 
 function igreen {
@@ -28,13 +28,12 @@ function ired {
 }
 
 function green {
-        echo -e "$(tput bold; tput setaf 2)$1$(tput sgr0)"
+  echo -e "$(tput bold; tput setaf 2)$1$(tput sgr0)"
 }
 
 function yellow {
-        echo -e "$(tput bold; tput setaf 3)$1$(tput sgr0)"
+  echo -e "$(tput bold; tput setaf 3)$1$(tput sgr0)"
 }
-
 
 ### Checking if the script is started as root ###
 
@@ -62,12 +61,10 @@ if [ $(systemd-detect-virt -c) != "none" ]; then
 	exit 1
 fi
 
-
 # TEMP N
 # sudo apt-get install npm
 # sudo npm install -g n
 # sudo n 6.9.2
-
 
 # ----------------------------------
 # Variables
@@ -75,9 +72,7 @@ fi
 
 EDIT=nano
 
-
 GIT_ORIGIN=bpl-mainnet
-
 
 LOC_SERVER="http://localhost:9030"
 
@@ -87,12 +82,9 @@ SNAPDIR="$HOME/snapshots"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-#
 BPLNET=mainnet
 
 re='^[0-9]+$' # For numeric checks
-
-#pubkey="02a3e3e5fc36565ab4275ddfee1592667f6c46f5e9aa7528499511d65c5e82a7db"
 
 # Logfile
 log="install_bpl.log"
@@ -154,21 +146,21 @@ EOF
 tput sgr0
 }
 
-pause(){
-        read -p "$(yellow "       Press [Enter] key to continue...")" fakeEnterKey
+pause() {
+  read -p "$(yellow "       Press [Enter] key to continue...")" fakeEnterKey
 }
 
 # Current Network Height
 
 function net_height {
 	# Spawning curl netheight processes loop
-        for n in {1..$arraylength..$arraylength}; do
-                for (( i=1; i<${arraylength}+1; i++ )); do
-                        saddr=${!nodes[i-1]:0:1}
-                        echo $i $(curl -m 3 -s $saddr$apicall | cut -f 5 -d ":" | sed 's/,.*//' | sed 's/}$//') >> $HOME/tout.txt &
-                done
-                wait
-        done
+  for n in {1..$arraylength..$arraylength}; do
+    for (( i=1; i<${arraylength}+1; i++ )); do
+      saddr=${!nodes[i-1]:0:1}
+      echo $i $(curl -m 3 -s $saddr$apicall | cut -f 5 -d ":" | sed 's/,.*//' | sed 's/}$//') >> $HOME/tout.txt &
+    done
+      wait
+  done
 
 	# Array read
 	while read ind line; do
@@ -184,19 +176,21 @@ function net_height {
 
 # Find parent PID
 function top_level_parent_pid {
-        # Look up the parent of the given PID.
-        pid=${1:-$$}
-	if [ "$pid" != "0" ]; then
-	        stat=($(</proc/${pid}/stat))
-        	ppid=${stat[3]}
+  # Look up the parent of the given PID.
+  pid=${1:-$$}
 
-	        # /sbin/init always has a PID of 1, so if you reach that, the current PID is
-        	# the top-level parent. Otherwise, keep looking.
-	        if [[ ${ppid} -eq 1 ]] ; then
-        	        echo ${pid}
-        	else
-                	top_level_parent_pid ${ppid}
-        	fi
+	if [ "$pid" != "0" ]; then
+    stat=($(</proc/${pid}/stat))
+  	ppid=${stat[3]}
+
+    # /sbin/init always has a PID of 1, so if you reach that, the current PID is
+  	# the top-level parent. Otherwise, keep looking.
+
+    if [[ ${ppid} -eq 1 ]] ; then
+      echo ${pid}
+  	else
+    	top_level_parent_pid ${ppid}
+  	fi
 	else
 		pid=0
 	fi
@@ -204,70 +198,71 @@ function top_level_parent_pid {
 
 # Process management variables
 function proc_vars {
-        node=`pgrep -a "node" | grep BPL-node | awk '{print $1}'`
-        if [ "$node" == "" ] ; then
-                node=0
-        fi
+  node=`pgrep -a "node" | grep BPL-node | awk '{print $1}'`
+  if [ "$node" == "" ] ; then
+    node=0
+  fi
 
-        # Is Postgres running
-        pgres=`pgrep -a "postgres" | awk '{print $1}'`
+  # Is Postgres running
+  pgres=`pgrep -a "postgres" | awk '{print $1}'`
 
-        # Find if forever process manager is runing
-        frvr=`pgrep -a "node" | grep forever | awk '{print $1}'`
+  # Find if forever process manager is runing
+  frvr=`pgrep -a "node" | grep forever | awk '{print $1}'`
 
-        # Find the top level process of node
+  # Find the top level process of node
 	top_lvl=$(top_level_parent_pid $node)
 
-        # Looking for BPL-node installations and performing actions
-        bpldir=`locate -b "\BPL-node"`
+  # Looking for BPL-node installations and performing actions
+  bpldir=`locate -b "\BPL-node"`
 
-        # Getting the parent of the install path
-        parent=`dirname $bpldir 2>&1`
+  # Getting the parent of the install path
+  parent=`dirname $bpldir 2>&1`
 
-        # Forever Process ID
-        forever_process=`forever --plain list | grep $node | sed -nr 's/.*\[(.*)\].*/\1/p'`
+  # Forever Process ID
+  forever_process=`forever --plain list | grep $node | sed -nr 's/.*\[(.*)\].*/\1/p'`
 
-        # Node process work directory
-        nwd=`pwdx $node 2>/dev/null | awk '{print $2}'`
+  # Node process work directory
+  nwd=`pwdx $node 2>/dev/null | awk '{print $2}'`
 }
 
 #PSQL Queries
 query() {
-PUBKEY="$(psql -d bpl_mainnet -t -c 'SELECT ENCODE("publicKey",'"'"'hex'"'"') as "publicKey" FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-DNAME="$(psql -d bpl_mainnet -t -c 'SELECT username FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-PROD_BLOCKS="$(psql -d bpl_mainnet -t -c 'SELECT producedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-MISS_BLOCKS="$(psql -d bpl_mainnet -t -c 'SELECT missedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-#BALANCE="$(psql -d bpl_mainnet -t -c 'SELECT (balance/100000000.0) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | sed -e 's/^[[:space:]]*//')"
-BALANCE="$(psql -d bpl_mainnet -t -c 'SELECT to_char(("balance"/100000000.0), '"'FM 999,999,999,990D00000000'"' ) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-HEIGHT="$(psql -d bpl_mainnet -t -c 'SELECT height FROM blocks ORDER BY HEIGHT DESC LIMIT 1;' | xargs)"
-RANK="$(psql -d bpl_mainnet -t -c 'WITH RANK AS (SELECT DISTINCT "publicKey", "vote", "round", row_number() over (order by "vote" desc nulls last) as "rownum" FROM mem_delegates where "round" = (select max("round") from mem_delegates) ORDER BY "vote" DESC) SELECT "rownum" FROM RANK WHERE "publicKey" = '"'"$PUBKEY"'"';' | xargs)"
+  PUBKEY="$(psql -d bpl_mainnet -t -c 'SELECT ENCODE("publicKey",'"'"'hex'"'"') as "publicKey" FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+  DNAME="$(psql -d bpl_mainnet -t -c 'SELECT username FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+  PROD_BLOCKS="$(psql -d bpl_mainnet -t -c 'SELECT producedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+  MISS_BLOCKS="$(psql -d bpl_mainnet -t -c 'SELECT missedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+  #BALANCE="$(psql -d bpl_mainnet -t -c 'SELECT (balance/100000000.0) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | sed -e 's/^[[:space:]]*//')"
+  BALANCE="$(psql -d bpl_mainnet -t -c 'SELECT to_char(("balance"/100000000.0), '"'FM 999,999,999,990D00000000'"' ) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+  HEIGHT="$(psql -d bpl_mainnet -t -c 'SELECT height FROM blocks ORDER BY HEIGHT DESC LIMIT 1;' | xargs)"
+  RANK="$(psql -d bpl_mainnet -t -c 'WITH RANK AS (SELECT DISTINCT "publicKey", "vote", "round", row_number() over (order by "vote" desc nulls last) as "rownum" FROM mem_delegates where "round" = (select max("round") from mem_delegates) ORDER BY "vote" DESC) SELECT "rownum" FROM RANK WHERE "publicKey" = '"'"$PUBKEY"'"';' | xargs)"
 }
 
 # Stats Address Change
 change_address() {
-    DID_BREAK=0
+  DID_BREAK=0
 
-    echo -e "\n$(yellow " Press CTRL+C followed by ENTER to return to menu")\n"
-    echo "$(yellow "   Enter your delegate address for Stats")"
-    echo "$(yellow "    WITHOUT QUOTES, followed by 'ENTER'")"
-    trap "DID_BREAK=1" SIGINT
-    read -e -r -p "$(yellow " :") " inaddress
-    while [ ! "${inaddress:0:1}" == "B" ] ; do
-        if [ "$DID_BREAK" -eq 0 ] ; then
-            echo -e "\n$(yellow " Use Ctrl+C followed by ENTER to return to menu")\n"
-            echo -e "\n$(ired "   Enter delegate ADDRESS, NOT the SECRET!")\n"
-            read -e -r -p "$(yellow " :") " inaddress
-        else
-            break
-        fi
-    done
-    if [ "$DID_BREAK" -eq 1 ] ; then
-        init
+  echo -e "\n$(yellow " Press CTRL+C followed by ENTER to return to menu")\n"
+  echo "$(yellow "   Enter your delegate address for Stats")"
+  echo "$(yellow "    WITHOUT QUOTES, followed by 'ENTER'")"
+  trap "DID_BREAK=1" SIGINT
+  read -e -r -p "$(yellow " :") " inaddress
+
+  while [ ! "${inaddress:0:1}" == "B" ] ; do
+    if [ "$DID_BREAK" -eq 0 ] ; then
+      echo -e "\n$(yellow " Use Ctrl+C followed by ENTER to return to menu")\n"
+      echo -e "\n$(ired "   Enter delegate ADDRESS, NOT the SECRET!")\n"
+      read -e -r -p "$(yellow " :") " inaddress
     else
-        ADDRESS=$inaddress
-    #   sed -i "s#\(.*ADDRESS\=\)\( .*\)#\1 "\"$inaddress\""#" $DIR/$BASH_SOURCE
-        sed -i "1,/\(.*ADDRESS\=\)/s#\(.*ADDRESS\=\)\(.*\)#\1"\"$inaddress\""#" $DIR/$BASH_SOURCE
+      break
     fi
+  done
+
+  if [ "$DID_BREAK" -eq 1 ] ; then
+    init
+  else
+    ADDRESS=$inaddress
+    sed -i "1,/\(.*ADDRESS\=\)/s#\(.*ADDRESS\=\)\(.*\)#\1"\"$inaddress\""#" $DIR/$BASH_SOURCE
+  fi
 }
 
 
@@ -276,9 +271,10 @@ turn() {
 	if [ "$ADDRESS" == "" ] ; then
 		change_address
 	fi
-#	pause
+  #	pause
+
 while true; do
-#	trap : INT
+  #	trap : INT
 	query
 	net_height
 	asciiart
@@ -297,15 +293,15 @@ while true; do
 	fi
 
 	pos=0
-	for position in $queue
-	do
+	for position in $queue; do
 		position=`echo "$position" | tr -d '",'`
 		if [[ $PUBKEY == $position ]]; then
-#			echo "$position : $pos <=="
+      # echo "$position : $pos <=="
 			turn=$pos
 		fi
 		pos=`expr $pos + 1`
 	done
+
 	git_upd_check
 	echo -e "$(yellow "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")"
 	echo -e "$(green "                   NODE STATS")"
@@ -317,31 +313,33 @@ while true; do
 	echo -e "$(green "      Forging Position : ")$(yellow "$turn")"
 	echo -e "$(green "      Node Blockheight : ")$(yellow "$HEIGHT")"
 	echo -e "$(green "      Net Height       : ")$(yellow "$highest")"
-#	echo -e "$(green "Public Key:")\n$(yellow "$PUBKEY")\n"
+  #	echo -e "$(green "Public Key:")\n$(yellow "$PUBKEY")\n"
 	echo -e "$(green "      Forged Blocks    : ")$(yellow "$PROD_BLOCKS")"
 	echo -e "$(green "      Missed Blocks    : ")$(yellow "$MISS_BLOCKS")"
 	echo -e "$(green "      Productivity     : ")$(yellow "$RATIO"%)"
 	echo -e "$(green "      BPL Balance      : ")$(yellow "$BALANCE")"
 	echo
 	echo -e "\n$(yellow "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")"
-        if [ -e $bpldir/app.js ]; then
-                echo -e "\n$(green "       ✔ BPL Node installation found!")\n"
-                if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                        echo -e "$(green "      BPL Node process is running with:")"
-                        echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
-                        echo -e "$(green "   and Work Directory: $bpldir")\n"
-                else
-                        echo -e "\n$(red "       ✘ No BPL Node process is running")\n"
-                fi
-        else
-                echo -e "\n$(red "       ✘ No BPL Node installation is found")\n"
-        fi
+
+  if [ -e $bpldir/app.js ]; then
+    echo -e "\n$(green "       ✔ BPL Node installation found!")\n"
+    if [ "$node" != "" ] && [ "$node" != "0" ]; then
+      echo -e "$(green "      BPL Node process is running with:")"
+      echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
+      echo -e "$(green "   and Work Directory: $bpldir")\n"
+    else
+      echo -e "\n$(red "       ✘ No BPL Node process is running")\n"
+    fi
+  else
+    echo -e "\n$(red "       ✘ No BPL Node installation is found")\n"
+  fi
+
 	echo -e "\n$(yellow "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")"
 	echo -e "\n$(yellow "          Press 'Enter' to terminate          ")"
 	read -t 4 && break
 
-#sleep 4
-done
+  # sleep 4
+  done
 }
 
 # Stats Display
@@ -359,7 +357,6 @@ function stats {
 		echo -e "\n$(red "       ✘ BPL Node process is not running")\n"
 		pause
 	fi
-
 }
 
 # Updating the locate database
@@ -375,120 +372,126 @@ function os_up {
 	sudo apt-get update >&- 2>&- #-yqq 2>/dev/null
 	avail_upd=`/usr/lib/update-notifier/apt-check 2>&1 | cut -d ';' -f 1`
 	sec_upd=`/usr/lib/update-notifier/apt-check 2>&1 | cut -d ';' -f 2`
-		if [ "$avail_upd" == 0 ]; then
-		        echo -e "$(green "        There are no updates available")\n"
-		        sleep 1
-		else
-			echo -e "\n$(red "        There are $avail_upd updates available")"
-			echo -e "$(red "        $sec_upd of them are security updates")"
-			echo -e "\n$(yellow "            Updating the system...")"
-			sudo apt-get upgrade -yqq >&- 2>&- #2>/dev/null
-			sudo apt-get dist-upgrade -yq >&- 2>&- #2>/dev/null
-			#sudo apt-get purge nodejs postgresql postgresql-contrib samba*
-			sudo apt-get autoremove -yyq >&- 2>&- #2>/dev/null
-			sudo apt-get autoclean -yq >&- 2>&- #2>/dev/null
-			echo -e "\n$(green "          ✔ The system was updated!")"
-			echo -e "\n$(red "        System restart is recommended!\n")"
-		fi
+
+	if [ "$avail_upd" == 0 ]; then
+    echo -e "$(green "        There are no updates available")\n"
+    sleep 1
+	else
+		echo -e "\n$(red "        There are $avail_upd updates available")"
+		echo -e "$(red "        $sec_upd of them are security updates")"
+		echo -e "\n$(yellow "            Updating the system...")"
+		sudo apt-get upgrade -yqq >&- 2>&- #2>/dev/null
+		sudo apt-get dist-upgrade -yq >&- 2>&- #2>/dev/null
+		# sudo apt-get purge nodejs postgresql postgresql-contrib samba*
+		sudo apt-get autoremove -yyq >&- 2>&- #2>/dev/null
+		sudo apt-get autoclean -yq >&- 2>&- #2>/dev/null
+		echo -e "\n$(green "          ✔ The system was updated!")"
+		echo -e "\n$(red "        System restart is recommended!\n")"
+	fi
 }
 
 # Install prerequisites
 function prereq {
 	# Get array length
-        arraylength=${#array[@]}
+  arraylength=${#array[@]}
 
-        # Installation loop
-        echo -e "$(yellow "-----------------------------------------------")"
-        for (( i=1; i<${arraylength}+1; i++ ));
-		do
-			asciiart;
-          		echo -e "$(yellow "         Installing prerequisites...") "
-          		echo -e "$(yellow "-----------------------------------------------")" # added
-               		echo -e "$(yellow "  $i  /  ${arraylength}  :  ${array[$i-1]}")"
-			if [ $(dpkg-query -W -f='${Status}' ${array[$i-1]} 2>/dev/null | grep -c "ok installed") -eq 0 ]; then
-                        	sudo apt-get install -yqq >&- 2>&- ${array[$i-1]};
-                	else
-                        	echo "$(green " Package: ${array[$i-1]} is already installed!")"
-                	fi
-                	echo -e "$(yellow "-----------------------------------------------")"
-		        sleep 0.5
-		        clear
-		done
+  # Installation loop
+  echo -e "$(yellow "-----------------------------------------------")"
+  for (( i=1; i<${arraylength}+1; i++ )); do
+		asciiart;
+		echo -e "$(yellow "         Installing prerequisites...") "
+		echo -e "$(yellow "-----------------------------------------------")" # added
+ 		echo -e "$(yellow "  $i  /  ${arraylength}  :  ${array[$i-1]}")"
+
+		if [ $(dpkg-query -W -f='${Status}' ${array[$i-1]} 2>/dev/null | grep -c "ok installed") -eq 0 ]; then
+    	sudo apt-get install -yqq >&- 2>&- ${array[$i-1]};
+  	else
+    	echo "$(green " Package: ${array[$i-1]} is already installed!")"
+  	fi
+
+    echo -e "$(yellow "-----------------------------------------------")"
+    sleep 0.5
+    clear
+	done
 }
 
 # Install and set locale
 function set_locale {
-        # Checking Locale first
-        asciiart
-        if [ `locale -a | grep ^en_US.UTF-8` ] || [ `locale -a | grep ^en_US.utf8` ] ; then
-                echo -e "$(green "     ✔  Locale en_US.UTF-8 is installed")\n"
-                echo -e "$(yellow "  Checking if the locale is set in bashrc...")"
-                        if `grep -E "(en_US.UTF-8)" $HOME/.bashrc` ; then
-                                echo -e "\n$(green "          ✔ bashrc is already set")"
-                        else
-                                # Setting the bashrc locale
-                                echo -e "$(red " ✘ Not set yet. Setting the bashrc locale...")"
-                                echo -e "export LC_ALL=en_US.UTF-8" >> $HOME/.bashrc
-                                echo -e "export LANG=en_US.UTF-8" >> $HOME/.bashrc
-                                echo -e "export LANGUAGE=en_US.UTF-8" >> $HOME/.bashrc
-                                echo -e "$(green "           ✔ bashrc locale was set")\n"
+  # Checking Locale first
+  asciiart
+  if [ `locale -a | grep ^en_US.UTF-8` ] || [ `locale -a | grep ^en_US.utf8` ] ; then
+    echo -e "$(green "     ✔  Locale en_US.UTF-8 is installed")\n"
+    echo -e "$(yellow "  Checking if the locale is set in bashrc...")"
 
-                                # Setting the current shell locale
-                                echo -e "$(yellow "      Setting current shell locale...")\n"
-                                export LC_ALL=en_US.UTF-8
-                                export LANG=en_US.UTF-8
-                                export LANGUAGE=en_US.UTF-8
-                                echo -e "$(green "           ✔ Shell locale was set")"
-                        fi
-        else
-                # Install en_US.UTF-8 Locale
-                echo -e "$(red "   ✘ Locale en_US.UTF-8 is not installed")\n"
-                echo -e "$(yellow "   Generating locale en_US.UTF-8...")"
-                sudo locale-gen en_US.UTF-8
-                sudo update-locale LANG=en_US.UTF-8
-                echo -e "$(green "    ✔  Locale generated successfully.")\n"
+    if `grep -E "(en_US.UTF-8)" $HOME/.bashrc` ; then
+            echo -e "\n$(green "          ✔ bashrc is already set")"
+    else
+      # Setting the bashrc locale
+      echo -e "$(red " ✘ Not set yet. Setting the bashrc locale...")"
+      echo -e "export LC_ALL=en_US.UTF-8" >> $HOME/.bashrc
+      echo -e "export LANG=en_US.UTF-8" >> $HOME/.bashrc
+      echo -e "export LANGUAGE=en_US.UTF-8" >> $HOME/.bashrc
+      echo -e "$(green "           ✔ bashrc locale was set")\n"
 
-                # Setting the current shell locale
-                echo -e "$(yellow "     Setting current shell locale...")\n"
-                export LC_ALL=en_US.UTF-8
-                export LANG=en_US.UTF-8
-                export LANGUAGE=en_US.UTF-8
-                echo -e "$(green "         ✔ Shell locale was set")\n"
+      # Setting the current shell locale
+      echo -e "$(yellow "      Setting current shell locale...")\n"
+      export LC_ALL=en_US.UTF-8
+      export LANG=en_US.UTF-8
+      export LANGUAGE=en_US.UTF-8
+      echo -e "$(green "           ✔ Shell locale was set")"
+    fi
+  else
+    # Install en_US.UTF-8 Locale
+    echo -e "$(red "   ✘ Locale en_US.UTF-8 is not installed")\n"
+    echo -e "$(yellow "   Generating locale en_US.UTF-8...")"
+    sudo locale-gen en_US.UTF-8
+    sudo update-locale LANG=en_US.UTF-8
+    echo -e "$(green "    ✔  Locale generated successfully.")\n"
 
-                # Setting the bashrc locale
-                echo -e "$(yellow "   Setting the bashrc locale...")\n"
-                echo "export LC_ALL=en_US.UTF-8" >> $HOME/.bashrc
-                echo "export LANG=en_US.UTF-8" >> $HOME/.bashrc
-                echo "export LANGUAGE=en_US.UTF-8" >> $HOME/.bashrc
-                echo -e "$(green "        ✔ bashrc locale was set")"
-        fi
+    # Setting the current shell locale
+    echo -e "$(yellow "     Setting current shell locale...")\n"
+    export LC_ALL=en_US.UTF-8
+    export LANG=en_US.UTF-8
+    export LANGUAGE=en_US.UTF-8
+    echo -e "$(green "         ✔ Shell locale was set")\n"
+
+    # Setting the bashrc locale
+    echo -e "$(yellow "   Setting the bashrc locale...")\n"
+    echo "export LC_ALL=en_US.UTF-8" >> $HOME/.bashrc
+    echo "export LANG=en_US.UTF-8" >> $HOME/.bashrc
+    echo "export LANGUAGE=en_US.UTF-8" >> $HOME/.bashrc
+    echo -e "$(green "        ✔ bashrc locale was set")"
+  fi
 }
 
 # Install and set NTP
 function ntpd {
-        # Check if ve are running in a OpenVZ or LXC Container for NTP Install
-        if [ $(systemd-detect-virt) == "lxc" ] || [ $(systemd-detect-virt) == "openvz" ]; then
-                echo -e "Your host is running in LXC or OpenVZ container. NTP is not required. \n"
-        else
-                echo -e "Checking if NTP is running first... \n"
-                if ! sudo pgrep -x "ntpd" > /dev/null; then
-                        echo -e "No NTP found. Installing... "
-                        sudo apt-get install ntp -yyq &>> $log
-                        sudo service ntp stop &>> $log
-                        sudo ntpd -gq &>> $log
+  # Check if ve are running in a OpenVZ or LXC Container for NTP Install
+  if [ $(systemd-detect-virt) == "lxc" ] || [ $(systemd-detect-virt) == "openvz" ]; then
+    echo -e "Your host is running in LXC or OpenVZ container. NTP is not required. \n"
+  else
+    echo -e "Checking if NTP is running first... \n"
+    if ! sudo pgrep -x "ntpd" > /dev/null; then
+      echo -e "No NTP found. Installing... "
+      sudo apt-get install ntp -yyq &>> $log
+      sudo service ntp stop &>> $log
+      sudo ntpd -gq &>> $log
 			sleep 2
-                        sudo service ntp start &>> $log
+      sudo service ntp start &>> $log
 			sleep 2
-                                if ! sudo pgrep -x "ntpd" > /dev/null; then
-                                        echo -e "NTP failed to start! It should be installed and running for BPL.\n Check /etc/ntp.conf for any issues and correct them first! \n Exiting."
-                                        exit 1
-                                fi
-                        echo -e "NTP was successfully installed and started with PID:" `sudo pgrep -x "ntpd"`
-                else
-                        echo "NTP is up and running with PID:" `sudo pgrep -x "ntpd"`
-                fi
-        fi
-        echo "-------------------------------------------------------------------"
+
+      if ! sudo pgrep -x "ntpd" > /dev/null; then
+        echo -e "NTP failed to start! It should be installed and running for BPL.\n Check /etc/ntp.conf for any issues and correct them first! \n Exiting."
+        exit 1
+      fi
+
+      echo -e "NTP was successfully installed and started with PID:" `sudo pgrep -x "ntpd"`
+    else
+      echo "NTP is up and running with PID:" `sudo pgrep -x "ntpd"`
+    fi
+  fi
+
+  echo "-------------------------------------------------------------------"
 }
 
 # Logrotate for BPL Node logs
@@ -520,7 +523,6 @@ EOF"
 
 # GIT Update Check
 function git_upd_check {
-
 	if [ -d "$bpldir" ]; then
 
 		cd $bpldir
@@ -543,46 +545,47 @@ function git_upd_check {
 			echo -e "         $(ired "           Diverged            \n")"
 		fi
 	fi
-
 }
 
 # Install PostgreSQL
 function inst_pgdb {
-        sudo apt install -yyq postgresql postgresql-contrib >&- 2>&-
+  sudo apt install -yyq postgresql postgresql-contrib >&- 2>&-
 }
 
 # Purge the Postgres Database
 function purge_pgdb {
-        if [ $(dpkg-query -W -f='${Status}' postgresql } 2>/dev/null | grep -c "ok installed") -eq 0 ]; then
-                echo "$(green "  Postgres is not installed, nothing to purge. Exiting.") "
-        else
-	echo -e "    $(ired "                                        ")"
-	echo -e "    $(ired "   WARNING! This option will stop all   ")"
-	echo -e "    $(ired "   running BPL Node processes and will  ")"
-	echo -e "    $(ired "   remove the databases and PostgreSQL  ")"
-	echo -e "    $(ired "   installation! Are you REALLY sure?   ")"
-	echo -e "    $(ired "                                        ")"
-	read -e -r -p "$(yellow "\n    Type (Y) to proceed or (N) to cancel: ")" -i "N" YN
-		if [[ "$YN" =~ [Yy]$ ]]; then
+  if [ $(dpkg-query -W -f='${Status}' postgresql } 2>/dev/null | grep -c "ok installed") -eq 0 ]; then
+    echo "$(green "  Postgres is not installed, nothing to purge. Exiting.") "
+  else
+  	echo -e "    $(ired "                                        ")"
+  	echo -e "    $(ired "   WARNING! This option will stop all   ")"
+  	echo -e "    $(ired "   running BPL Node processes and will  ")"
+  	echo -e "    $(ired "   remove the databases and PostgreSQL  ")"
+  	echo -e "    $(ired "   installation! Are you REALLY sure?   ")"
+  	echo -e "    $(ired "                                        ")"
+  	read -e -r -p "$(yellow "\n    Type (Y) to proceed or (N) to cancel: ")" -i "N" YN
+
+    if [[ "$YN" =~ [Yy]$ ]]; then
 			echo -e "$(yellow "\n     Proceeding with PostgreSQL removal... \n")"
 			forever --silent --plain stopall
 			sleep 1
 			drop_db
 			drop_user
 
-        		# stop the DB if running first...
-		        sudo service postgresql stop
-		        sleep 1
-		        sudo apt --purge remove -yq postgresql\* >&- 2>&-
-		        sudo rm -rf /etc/postgresql/ >&- 2>&-
-		        sudo rm -rf /etc/postgresql-common/ >&- 2>&-
-		        sudo rm -rf /var/lib/postgresql/ >&- 2>&-
-		        sudo userdel -r postgres >&- 2>&-
-		        sudo groupdel postgres >&- 2>&-
+  		# stop the DB if running first...
+      sudo service postgresql stop
+      sleep 1
+      sudo apt --purge remove -yq postgresql\* >&- 2>&-
+      sudo rm -rf /etc/postgresql/ >&- 2>&-
+      sudo rm -rf /etc/postgresql-common/ >&- 2>&-
+      sudo rm -rf /var/lib/postgresql/ >&- 2>&-
+      sudo userdel -r postgres >&- 2>&-
+      sudo groupdel postgres >&- 2>&-
 			echo -e "$(yellow "\n          PostgreSQL has been removed\n")"
 
 			read -e -r -p "$(yellow "\n  Proceed with PostgreSQL installation (Y/n): ")" -i "Y" YN
-			if [[ "$YN" =~ [Yy]$ ]]; then
+
+      if [[ "$YN" =~ [Yy]$ ]]; then
 				echo -e "$(yellow "\n   Proceeding with PostgreSQL installation... \n")"
 				inst_pgdb
 				create_db
@@ -590,237 +593,240 @@ function purge_pgdb {
 				pause
 			fi
 		fi
-        fi
+  fi
 }
 
 function snap_menu {
-if [ ! -d "$SNAPDIR" ]; then
-	mkdir -p $SNAPDIR
-fi
+  if [ ! -d "$SNAPDIR" ]; then
+  	mkdir -p $SNAPDIR
+  fi
 
-if [ "$(ls -A $SNAPDIR)" ]; then
-	if [[ $(expr `date +%s` - `stat -c %Y $SNAPDIR/current`) -gt 900 ]]; then
-		echo -e "$(yellow " Existing Current snapshot is older than 15 minutes")"
-        	read -e -r -p "$(yellow "\n Download from Blockpool.IO? (Y) or use Local (N) ")" -i "Y" YN
-			if [[ "$YN" =~ [Yy]$ ]]; then
-				echo -e "$(yellow "\n     Downloading latest snapshot from Blockpool.IO\n")"
-				rm $SNAPDIR/current
-				wget -nv https://snapshots.blockpool.io/current -O $SNAPDIR/current
-				echo -e "$(yellow "\n              Download finished\n")"
-			fi
-	fi
+  if [ "$(ls -A $SNAPDIR)" ]; then
+  	if [[ $(expr `date +%s` - `stat -c %Y $SNAPDIR/current`) -gt 900 ]]; then
+  		echo -e "$(yellow " Existing Current snapshot is older than 15 minutes")"
+    	read -e -r -p "$(yellow "\n Download from Blockpool.IO? (Y) or use Local (N) ")" -i "Y" YN
 
-        snapshots=( $(ls -t $SNAPDIR | xargs -0) )
-        echo -e "$(yellow "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")"
-        echo -e "$(green "           List of local snapshots:")"
-        echo -e "$(yellow "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n")"
-        for (( i=0; i<${#snapshots[*]}; i++ )); do
-                if [ $i -le 9 ]; then
-                        echo "             "  $(($i+1)): ${snapshots[$i]}
-                else
-                        echo "            "  $(($i+1)): ${snapshots[$i]}
-                fi
-        done
+  		if [[ "$YN" =~ [Yy]$ ]]; then
+  			echo -e "$(yellow "\n     Downloading latest snapshot from Blockpool.IO\n")"
+  			rm $SNAPDIR/current
+  			wget -nv https://snapshots.blockpool.io/current -O $SNAPDIR/current
+  			echo -e "$(yellow "\n              Download finished\n")"
+  		fi
+  	fi
 
-        read -ep "$(yellow "\n       Which snapshot to be restored? ")"
-        if [[ "${REPLY}" =~ $re ]]; then
-        ## Numeric checks
-                if [ $REPLY -le ${#snapshots[*]} ]; then
-                        echo -e "$(yellow "\n         Restoring snapshot ${snapshots[$((REPLY-1))]}")\n"
-			pg_restore -O -j 8 -d bpl_mainnet $SNAPDIR/${snapshots[$(($REPLY-1))]} 2>/dev/null
-			echo -e "$(green "   Snapshot ${snapshots[$(($REPLY-1))]} was restored successfully")\n"
-                else
-                        echo -e "$(red "\n        Value is out of list range!\n")"
-			snap_menu
-                fi
-        else
-                echo -e "$(red "\n             $REPLY is not a number!\n")"
-		snap_menu
-        fi
-else
-        echo -e "$(red "    No snapshots found in $SNAPDIR")"
-        read -e -r -p "$(yellow "\n Do you like to download the latest snapshot? (Y/n) ")" -i "Y" YN
-        if [[ "$YN" =~ [Yy]$ ]]; then
-		echo -e "$(yellow "\n     Downloading current snapshot from BPL.IO\n")"
-                wget -nv https://snapshots.blockpool.io/current -O $SNAPDIR/current
-		echo -e "$(yellow "\n              Download finished\n")"
-        fi
+    snapshots=( $(ls -t $SNAPDIR | xargs -0) )
+    echo -e "$(yellow "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")"
+    echo -e "$(green "           List of local snapshots:")"
+    echo -e "$(yellow "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n")"
 
-        if [[ $? -eq 0 ]]; then
-                read -e -r -p "$(yellow "  Do you like to restore the snapshot now? (Y/n) ")" -i "Y" YN
-                        if [[ "$YN" =~ [Yy]$ ]]; then
-                                #here calling the db_restore function
-				echo -e "$(yellow "\n   Restoring $SNAPDIR/current ... ")"
-                                pg_restore -O -j 8 -d bpl_mainnet $SNAPDIR/current 2>/dev/null
-				echo -e "$(green "\n    Current snapshot has been restored\n")"
-                        fi
-        else
-                echo -e "$(red "\n    Error while retriving the snapshot")"
-                echo -e "$(red "  Please check that the file exists on server")"
-        fi
+    for (( i=0; i<${#snapshots[*]}; i++ )); do
+      if [ $i -le 9 ]; then
+        echo "             "  $(($i+1)): ${snapshots[$i]}
+      else
+        echo "            "  $(($i+1)): ${snapshots[$i]}
+      fi
+    done
 
-fi
+    read -ep "$(yellow "\n       Which snapshot to be restored? ")"
+
+    if [[ "${REPLY}" =~ $re ]]; then
+      ## Numeric checks
+      if [ $REPLY -le ${#snapshots[*]} ]; then
+        echo -e "$(yellow "\n         Restoring snapshot ${snapshots[$((REPLY-1))]}")\n"
+  			pg_restore -O -j 8 -d bpl_mainnet $SNAPDIR/${snapshots[$(($REPLY-1))]} 2>/dev/null
+  			echo -e "$(green "   Snapshot ${snapshots[$(($REPLY-1))]} was restored successfully")\n"
+      else
+        echo -e "$(red "\n        Value is out of list range!\n")"
+  			snap_menu
+      fi
+    else
+      echo -e "$(red "\n             $REPLY is not a number!\n")"
+    	snap_menu
+    fi
+  else
+    echo -e "$(red "    No snapshots found in $SNAPDIR")"
+    read -e -r -p "$(yellow "\n Do you like to download the latest snapshot? (Y/n) ")" -i "Y" YN
+
+    if [[ "$YN" =~ [Yy]$ ]]; then
+  		echo -e "$(yellow "\n     Downloading current snapshot from BPL.IO\n")"
+      wget -nv https://snapshots.blockpool.io/current -O $SNAPDIR/current
+  		echo -e "$(yellow "\n              Download finished\n")"
+    fi
+
+    if [[ $? -eq 0 ]]; then
+      read -e -r -p "$(yellow "  Do you like to restore the snapshot now? (Y/n) ")" -i "Y" YN
+      if [[ "$YN" =~ [Yy]$ ]]; then
+        # here calling the db_restore function
+    		echo -e "$(yellow "\n   Restoring $SNAPDIR/current ... ")"
+        pg_restore -O -j 8 -d bpl_mainnet $SNAPDIR/current 2>/dev/null
+		    echo -e "$(green "\n    Current snapshot has been restored\n")"
+      fi
+    else
+      echo -e "$(red "\n    Error while retriving the snapshot")"
+      echo -e "$(red "  Please check that the file exists on server")"
+    fi
+  fi
 }
 
 # Check if program is installed
 function node_check {
-        # defaulting to 1
-        return_=1
-        # changing to 0 if not found
-        type $1 >/dev/null 2>&1 || { return_=0; }
-        # return value
-        # echo "$return_"
+  # defaulting to 1
+  return_=1
+  # changing to 0 if not found
+  type $1 >/dev/null 2>&1 || { return_=0; }
+  # return value
+  # echo "$return_"
 }
 
 # Install NVM and node
 function nvm {
-        node_check node
-        if [ "$return_" == 0 ]; then
-                echo -e "$(red "      ✘ Node is not installed, installing...")"
-                curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.32.0/install.sh 2>/dev/null | bash >>install.log
-                export NVM_DIR="$HOME/.nvm"
-                [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                ### Installing node ###
-                nvm install 6.9.5 >>install.log
-                nvm use 6.9.5 >>install.log
-                nvm alias default 6.9.5 >>install.log
-                echo -e "$(green "      ✔ Node `node -v` has been installed")"
-        else
-                echo -e "$(green "      ✔ Node `node -v` is  alredy installed")"
-        fi
+  node_check node
+  if [ "$return_" == 0 ]; then
+    echo -e "$(red "      ✘ Node is not installed, installing...")"
+    curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.32.0/install.sh 2>/dev/null | bash >>install.log
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+    ### Installing node ###
+    nvm install 6.9.5 >>install.log
+    nvm use 6.9.5 >>install.log
+    nvm alias default 6.9.5 >>install.log
+    echo -e "$(green "      ✔ Node `node -v` has been installed")"
+  else
+    echo -e "$(green "      ✔ Node `node -v` is  alredy installed")"
+  fi
 
-        node_check npm
-        if [ "$return_" == 0 ]; then
-                echo -e "$(red "      ✘ NPM is not installed, installing...")"
-                ### Install npm ###
-                npm install -g npm >>install.log 2>&1
-                echo -e "$(green "      ✔ NPM `npm -v` has been installed")"
-        else
-                echo -e "$(green "      ✔ NPM `npm -v` is alredy installed")"
-        fi
+  node_check npm
+  if [ "$return_" == 0 ]; then
+    echo -e "$(red "      ✘ NPM is not installed, installing...")"
+    ### Install npm ###
+    npm install -g npm >>install.log 2>&1
+    echo -e "$(green "      ✔ NPM `npm -v` has been installed")"
+  else
+    echo -e "$(green "      ✔ NPM `npm -v` is alredy installed")"
+  fi
 
-        node_check forever
-        if [ "$return_" == 0 ]; then
-                echo -e "$(red "      ✘ Forever is not installed, installing...")"
-                ### Install forever ###
-                npm install forever -g >>install.log 2>&1
-                echo -e "$(green "      ✔ Forever has been installed")"
-        else
-                echo -e "$(green "      ✔ Forever is alredy installed")"
-        fi
+  node_check forever
+  if [ "$return_" == 0 ]; then
+    echo -e "$(red "      ✘ Forever is not installed, installing...")"
+    ### Install forever ###
+    npm install forever -g >>install.log 2>&1
+    echo -e "$(green "      ✔ Forever has been installed")"
+  else
+    echo -e "$(green "      ✔ Forever is alredy installed")"
+  fi
 
-        # Setting fs.notify.max_user_watches
-        if grep -qi 'fs.inotify' /etc/sysctl.conf ; then
-                echo -e "\n$(green "  fs.inotify.max_user_watches is already set")"
-        else
-                echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
-        fi
+  # Setting fs.notify.max_user_watches
+  if grep -qi 'fs.inotify' /etc/sysctl.conf ; then
+    echo -e "\n$(green "  fs.inotify.max_user_watches is already set")"
+  else
+    echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+  fi
 
-        echo -e "\n$(yellow "Check install.log for reported install errors")"
+  echo -e "\n$(yellow "Check install.log for reported install errors")"
 }
 
 # Install BPL Node
 function inst_bpl {
-#	proc_vars
+  #	proc_vars
 	cd $HOME
-        mkdir BPL-node
-        git clone https://github.com/blockpool-io/BPL-node.git 2>/dev/null
-        cd BPL-node
+  mkdir BPL-node
+  git clone https://github.com/blockpool-io/BPL-node.git 2>/dev/null
+  cd BPL-node
 	git checkout $GIT_ORIGIN 2>/dev/null
 	git pull origin $GIT_ORIGIN 2>/dev/null
-        npm install grunt-cli -g 2>/dev/null
-        npm install libpq 2>/dev/null
-        npm install secp256k1 2>/dev/null
-        npm install bindings 2>/dev/null
-        git submodule init 2>/dev/null
-        git submodule update 2>/dev/null
-        npm install 2>/dev/null
+  npm install grunt-cli -g 2>/dev/null
+  npm install libpq 2>/dev/null
+  npm install secp256k1 2>/dev/null
+  npm install bindings 2>/dev/null
+  git submodule init 2>/dev/null
+  git submodule update 2>/dev/null
+  npm install 2>/dev/null
 }
 
 # Create BPL user and DB
 function create_db {
-        #check if PG is running here if not Start.
-        if [ -z "$pgres" ]; then
-                sudo service postgresql start
-        fi
-        sleep 1
-#       sudo -u postgres dropdb --if-exists bpl_mainnet
-#       sleep 1
-#       sudo -u postgres dropuser --if-exists $USER # 2>&1
-#       sleep 1
+  # check if PG is running here if not Start.
+  if [ -z "$pgres" ]; then
+    sudo service postgresql start
+  fi
+  sleep 1
+  # sudo -u postgres dropdb --if-exists bpl_mainnet
+  # sleep 1
+  # sudo -u postgres dropuser --if-exists $USER # 2>&1
+  # sleep 1
 	sudo -u postgres psql -c "update pg_database set encoding = 6, datcollate = 'en_US.UTF8', datctype = 'en_US.UTF8' where datname = 'template0';" >&- 2>&-
 	sudo -u postgres psql -c "update pg_database set encoding = 6, datcollate = 'en_US.UTF8', datctype = 'en_US.UTF8' where datname = 'template1';" >&- 2>&-
-        sudo -u postgres psql -c "CREATE USER $USER WITH PASSWORD 'Password' CREATEDB;" >&- 2>&-
-        sleep 1
-        createdb bpl_mainnet
+  sudo -u postgres psql -c "CREATE USER $USER WITH PASSWORD 'Password' CREATEDB;" >&- 2>&-
+  sleep 1
+  createdb bpl_mainnet
 }
 
 # Check if DB exists
 function db_exists {
-        # check if it's running and start if not.
-        if [ -z "$pgres" ]; then
-                sudo service postgresql start
-        fi
+  # check if it's running and start if not.
+  if [ -z "$pgres" ]; then
+    sudo service postgresql start
+  fi
 
-        if [[ ! $(sudo -u postgres psql bpl_mainnet -c '\q' 2>&1) ]]; then
-                read -r -n 1 -p "$(yellow "  Database exists! Do you want to drop it? (y/n):") " YN
-                        if [[ "$YN" =~ [Yy]$ ]]; then
-                                drop_db;
-                        fi
-        else
-                echo "Database not exist."
-        fi
+  if [[ ! $(sudo -u postgres psql bpl_mainnet -c '\q' 2>&1) ]]; then
+    read -r -n 1 -p "$(yellow "  Database exists! Do you want to drop it? (y/n):") " YN
+    if [[ "$YN" =~ [Yy]$ ]]; then
+      drop_db;
+    fi
+  else
+    echo "Database not exist."
+  fi
 }
 
 # Check if User exists
 function user_exists {
-        # check if it's running and start if not.
-        if [ -z "$pgres" ]; then
-                sudo service postgresql start
-        fi
+  # check if it's running and start if not.
+  if [ -z "$pgres" ]; then
+    sudo service postgresql start
+  fi
 
-        if [[ $(sudo -u postgres psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='$USER'" 2>&1) ]]; then
-                echo "User $USER exists";
-                read -r -n 1 -p "$(yellow "  User $USER exists! Do you want to remove it? (y/n):") " YN
+  if [[ $(sudo -u postgres psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='$USER'" 2>&1) ]]; then
+    echo "User $USER exists";
+    read -r -n 1 -p "$(yellow "  User $USER exists! Do you want to remove it? (y/n):") " YN
 
-                        if [[ "$YN" =~ [Yy]$ ]]; then
-                                sudo -u postgres dropuser --if-exists $USER
-                        fi
-        else
-                echo "User $USER does not exist"
-        fi
+    if [[ "$YN" =~ [Yy]$ ]]; then
+      sudo -u postgres dropuser --if-exists $USER
+    fi
+  else
+    echo "User $USER does not exist"
+  fi
 }
 
 # Drop BPL DB
 function drop_db {
-        # check if it's running and start if not.
-        if [ -z "$pgres" ]; then
-                sudo service postgresql start
-        fi
-        dropdb --if-exists bpl_mainnet
+  # check if it's running and start if not.
+  if [ -z "$pgres" ]; then
+    sudo service postgresql start
+  fi
+  dropdb --if-exists bpl_mainnet
 }
 
 function drop_user {
-        if [ -z "$pgres" ]; then
-                sudo service postgresql start
-        fi
+  if [ -z "$pgres" ]; then
+    sudo service postgresql start
+  fi
 
-        if [[ $(sudo -u postgres psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='$USER'" 2>&1) ]]; then
-		sudo -u postgres dropuser --if-exists $USER
-        else
-                echo "DB User $USER does not exist"
-        fi
+  if [[ $(sudo -u postgres psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='$USER'" 2>&1) ]]; then
+    sudo -u postgres dropuser --if-exists $USER
+  else
+    echo "DB User $USER does not exist"
+  fi
 }
 
 function update_bpl {
 	if [ "$UP_TO_DATE" -ne 1 ]; then
-	        cd $bpldir
-#       	 forever stop app.js
+    cd $bpldir
+    # forever stop app.js
 		TMP_PASS=$(jq -r '.forging.secret | @csv' config.$BPLNET.json)
 		mv config.mainnet.json ../
-	        git pull origin $GIT_ORIGIN
+	  git pull origin $GIT_ORIGIN
 		git checkout $GIT_ORIGIN
-	        npm install
+    npm install
 		sleep 1
 
 		if [ ! -e config.$BPLNET.json ]; then
@@ -830,8 +836,8 @@ function update_bpl {
 		fi
 
 		unset TMP_PASS
-#		forever restart $forever_process
-#	        forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json
+    # forever restart $forever_process
+    # forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json
 	else
 		echo "BPL Node is already up to date!"
 		sleep 2
@@ -840,21 +846,21 @@ function update_bpl {
 
 # Put the password in config.mainnet.json
 function secret {
-    echo -e "\n"
+  echo -e "\n"
 
-    #Put check if bpldir is empty, if it is stays only config.mainnet.json
-    echo -e "$(yellow " Enter (copy/paste) your private key (secret)")"
-    echo -e "$(yellow "    (WITHOUT QUOTES!) followed by 'Enter'")"
-    read -e -r -p ": " secret
+  # Put check if bpldir is empty, if it is stays only config.mainnet.json
+  echo -e "$(yellow " Enter (copy/paste) your private key (secret)")"
+  echo -e "$(yellow "    (WITHOUT QUOTES!) followed by 'Enter'")"
+  read -e -r -p ": " secret
 
-    cd $bpldir
-    jq -r ".forging.secret = [\"$secret\"]" config.$BPLNET.json > config.$BPLNET.tmp && mv config.$BPLNET.tmp config.$BPLNET.json
+  cd $bpldir
+  jq -r ".forging.secret = [\"$secret\"]" config.$BPLNET.json > config.$BPLNET.tmp && mv config.$BPLNET.tmp config.$BPLNET.json
 }
 
 ### Menu Options ###
 
 # Install BPL node
-one(){
+one() {
 	cd $HOME
 	proc_vars
 	if [ -e $bpldir/app.js ]; then
@@ -862,10 +868,10 @@ one(){
 		asciiart
 		echo -e "\n$(green "       ✔ BPL Node is already installed!")\n"
 		if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                	echo -e "$(green "A working instance of BPL Node is found with:")"
-                	echo -e "$(green "System PID: $node, Forever PID $forever_process")"
-        	        echo -e "$(green "and Work Directory: $bpldir")\n"
-                fi
+    	echo -e "$(green "A working instance of BPL Node is found with:")"
+    	echo -e "$(green "System PID: $node, Forever PID $forever_process")"
+      echo -e "$(green "and Work Directory: $bpldir")\n"
+    fi
 		pause
 	else
 		clear
@@ -881,8 +887,8 @@ one(){
 		proc_vars
 		log_rotate
 		config="$parent/config.mainnet.json"
-#		echo "$config" 2>/dev/null
-#		pause
+    # echo "$config" 2>/dev/null
+    # pause
 		if  [ ! -e $config ] ; then
 			read -e -r -p "$(yellow " Do you want to set your Secret Key now? (Y/N): ")" -i "Y" keys
 			if [ "$keys" == "Y" ]; then
@@ -893,27 +899,31 @@ one(){
 }
 
 # Reinstall BPL Node
-two(){
+two() {
 	clear
 	asciiart
 	echo -e "$(ired "!!! This option will erase your DB and BPL Node installation !!!")\n"
 	read -e -r -p "$(red "   Are you sure that you want to proceed? (Y/N): ")" -i "N" keys
-	if [ "$keys" == "Y" ]; then
+
+  if [ "$keys" == "Y" ]; then
 		proc_vars
-        	if [ -e $bpldir/app.js ]; then
-                	clear
-                	asciiart
-                	echo -e "\n$(green " ✔ BPL Node installation found in $bpldir")\n"
-                	if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                        	echo -e "$(green "A working instance of BPL Node is found with:")"
-                        	echo -e "$(green "System PID: $node, Forever PID $forever_process")"
+  	if [ -e $bpldir/app.js ]; then
+    	clear
+    	asciiart
+    	echo -e "\n$(green " ✔ BPL Node installation found in $bpldir")\n"
+
+      if [ "$node" != "" ] && [ "$node" != "0" ]; then
+      	echo -e "$(green "A working instance of BPL Node is found with:")"
+      	echo -e "$(green "System PID: $node, Forever PID $forever_process")"
 				echo -e "$(yellow "           Stopping BPL node ...")\n"
 				cd $bpldir
 				forever --plain stop $forever_process >&- 2>&-
 				cd $parent
-                	fi
+    	fi
+
 			echo -e "$(yellow "    Backing up configuration file to $parent")\n"
 			sleep 1
+
 			if [ -e $parent/config.mainnet.json ] ; then
 				read -e -r -p "$(yellow "    Backup file exists! Overwrite? (Y/N): ")" -i "Y" keys
 				if [ "$keys" == "Y" ]; then
@@ -924,6 +934,7 @@ two(){
 				cp $bpldir/config.mainnet.json $parent
 				cd $parent
 			fi
+
 			echo -e "$(yellow "        Removing BPL Node directory...")\n"
 			sleep 1
 			rm -rf $bpldir
@@ -931,9 +942,10 @@ two(){
 			drop_user
 			one
 			echo ""
+
 			if [ -e $parent/config.mainnet.json ] ; then
 				read -e -r -p "$(yellow " Do you want to restore your config? (Y/N): ")" -i "Y" keys
-#				echo "Break1"; pause
+        # echo "Break1"; pause
 				if [ "$keys" == "Y" ]; then
 					cp $parent/config.mainnet.json $bpldir
 					echo -e "\n$(green " ✔ Config was restored in $bpldir")\n"
@@ -955,7 +967,8 @@ two(){
 			sleep 1
 			one
 			proc_vars
-			if [ -e $parent/config.mainnet.json ] ; then
+
+      if [ -e $parent/config.mainnet.json ] ; then
 				read -e -r -p "$(yellow " Do you want to restore your config? (Y/N): ")" -i "Y" keys
 				if [ "$keys" == "Y" ]; then
 					cp $parent/config.mainnet.json $bpldir
@@ -968,8 +981,10 @@ two(){
 					secret
 				fi
 			fi
+
 #			echo "Break2"; pause
 			read -e -r -p "$(yellow " Do you want to start BPL Node now? (Y/N): ")" -i "Y" keys
+
 			if [ "$keys" == "Y" ]; then
 				start
 			fi
@@ -977,60 +992,60 @@ two(){
 	fi
 }
 
-three(){
-        asciiart
-        proc_vars
+three() {
+  asciiart
+  proc_vars
 	if [ "$UP_TO_DATE" -ne 1 ]; then
-	        if [ "$node" != "" ] && [ "$node" != "0" ]; then
-        	        echo -e "$(green "       Instance of BPL Node found with:")"
-                	echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
-	                echo -e "$(green "       Directory: $bpldir")\n"
+    if [ "$node" != "" ] && [ "$node" != "0" ]; then
+      echo -e "$(green "       Instance of BPL Node found with:")"
+    	echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
+      echo -e "$(green "       Directory: $bpldir")\n"
 			echo -e "\n$(green "             Updating BPL Node...")\n"
 			update_bpl
-	                echo -e "$(green "                Restarting...")"
-        	        forever restart $forever_process >&- 2>&-
-                	echo -e "\n$(green "    ✔ BPL Node was successfully restarted")\n"
-	                pause
+      echo -e "$(green "                Restarting...")"
+      forever restart $forever_process >&- 2>&-
+    	echo -e "\n$(green "    ✔ BPL Node was successfully restarted")\n"
+      pause
 		else
-                	echo -e "\n$(red "       ✘ BPL Node process is not running")\n"
+    	echo -e "\n$(red "       ✘ BPL Node process is not running")\n"
 			echo -e "$(green "            Updating BPL Node...")\n"
 			update_bpl
 			forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
 			echo -e "$(green "    ✔ BPL Node was successfully started")\n"
-        	        pause
-        	fi
+      pause
+  	fi
 	else
-			echo -e "         $(igreen " BPL Node is already Up-to-date \n")"
-			sleep 2
+		echo -e "         $(igreen " BPL Node is already Up-to-date \n")"
+		sleep 2
 	fi
-
 }
 
-four(){
-        asciiart
-        proc_vars
-        if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                echo -e "$(green "       Instance of BPL Node found with:")"
-                echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
-                echo -e "$(green "       Directory: $bpldir")\n"
-                echo -e "\n$(green "            Stopping BPL Node...")\n"
+four() {
+  asciiart
+  proc_vars
+
+  if [ "$node" != "" ] && [ "$node" != "0" ]; then
+    echo -e "$(green "       Instance of BPL Node found with:")"
+    echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
+    echo -e "$(green "       Directory: $bpldir")\n"
+    echo -e "\n$(green "            Stopping BPL Node...")\n"
 		cd $bpldir
 		forever stop $forever_process >&- 2>&-
 		echo -e "$(green "             Dropping BPL DB...")\n"
-                drop_db
+    drop_db
 		drop_user
 		echo -e "$(green "             Creating BPL DB...")\n"
 		create_db
 
 		# Here should come the snap choice
 		snap_menu
-                echo -e "$(green "            Starting BPL Node...")"
+    echo -e "$(green "            Starting BPL Node...")"
 		forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
-                echo -e "\n$(green "    ✔ BPL Node was successfully started")\n"
-                pause
-        else
-                echo -e "\n$(red "       ✘ BPL Node process is not running")\n"
-                echo -e "$(green "             Dropping BPL DB...")\n"
+    echo -e "\n$(green "    ✔ BPL Node was successfully started")\n"
+    pause
+  else
+    echo -e "\n$(red "       ✘ BPL Node process is not running")\n"
+    echo -e "$(green "             Dropping BPL DB...")\n"
 		drop_db
 		drop_user
 		echo -e "$(green "             Creating BPL DB...")\n"
@@ -1040,26 +1055,27 @@ four(){
 		snap_menu
 		echo -e "$(green "            Starting BPL Node...")"
 		cd $bpldir
-                forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
-                echo -e "$(green "    ✔ BPL Node was successfully started")\n"
-                pause
-        fi
+    forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
+    echo -e "$(green "    ✔ BPL Node was successfully started")\n"
+    pause
+  fi
 }
 
-five(){
+five() {
 	clear
 	asciiart
 	proc_vars
 	secret
 	echo -e "\n$(green "      ✔  Secret has been set/replaced")\n"
 	read -e -r -p "$(yellow " Do you want to apply your new config? (Y/N): ")" -i "Y" keys
-	if [ "$keys" == "Y" ]; then
-        	if [ "$node" != "" ] && [ "$node" != "0" ]; then
+
+  if [ "$keys" == "Y" ]; then
+  	if [ "$node" != "" ] && [ "$node" != "0" ]; then
 			echo -e "\n$(green "       Instance of BPL Node found with:")"
 			echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
 			echo -e "$(green "       Directory: $bpldir")\n"
 			echo -e "$(green "                Restarting...")"
-	                forever restart $forever_process >&- 2>&-
+      forever restart $forever_process >&- 2>&-
 			echo -e "\n$(green "    ✔ BPL Node was successfully restarted")\n"
 			pause
 		else
@@ -1073,38 +1089,38 @@ five(){
 }
 
 # OS Update
-six(){
-os_up
-pause
+six() {
+  os_up
+  pause
 }
 
 # Additional Options
-seven(){
-#nano
-while true
-do
-        asciiart
-# HERE COMES THE GITHUB CHECK
-        git_upd_check
-        sub_menu
-        read_sub_options || break
-done
+seven() {
+  # nano
+  while true; do
+    asciiart
+    # HERE COMES THE GITHUB CHECK
+    git_upd_check
+    sub_menu
+    read_sub_options || break
+  done
 
-##turn
-#pause
+  # turn
+  # pause
 }
 
 # Start BPL Node
-start(){
-        proc_vars
-        if [ -e $bpldir/app.js ]; then
-                clear
-                asciiart
-                echo -e "\n$(green "       ✔ BPL Node installation found!")\n"
-                if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                        echo -e "$(green " A working instance of BPL Node was found with:")"
-                        echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
-                        echo -e "$(green "   and Work Directory: $bpldir")\n"
+start() {
+  proc_vars
+  if [ -e $bpldir/app.js ]; then
+    clear
+    asciiart
+    echo -e "\n$(green "       ✔ BPL Node installation found!")\n"
+
+    if [ "$node" != "" ] && [ "$node" != "0" ]; then
+      echo -e "$(green " A working instance of BPL Node was found with:")"
+      echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
+      echo -e "$(green "   and Work Directory: $bpldir")\n"
 		else
 			echo -e "$(green "            Starting BPL Node...")\n"
 			cd $bpldir
@@ -1116,40 +1132,41 @@ start(){
 			echo -e "\n$(green "       BPL Node started with:")"
 			echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
 			echo -e "$(green "   and Work Directory: $bpldir")\n"
-                fi
+    fi
 	else
 		echo -e "\n$(red "       ✘ No BPL Node installation is found")\n"
 	fi
-pause
+  pause
 }
 
 # Node Status
-status(){
-        proc_vars
-        if [ -e $bpldir/app.js ]; then
-                clear
-                asciiart
-                echo -e "\n$(green "       ✔ BPL Node installation found!")\n"
-                if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                        echo -e "$(green "      BPL Node process is working with:")"
-                        echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
-                        echo -e "$(green "   and Work Directory: $bpldir")\n"
-                else
-                        echo -e "\n$(red "       ✘ No BPL Node process is running")\n"
-                fi
-        else
-                echo -e "\n$(red "       ✘ No BPL Node installation is found")\n"
-        fi
-pause
+status() {
+  proc_vars
+  if [ -e $bpldir/app.js ]; then
+    clear
+    asciiart
+    echo -e "\n$(green "       ✔ BPL Node installation found!")\n"
+    if [ "$node" != "" ] && [ "$node" != "0" ]; then
+      echo -e "$(green "      BPL Node process is working with:")"
+      echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
+      echo -e "$(green "   and Work Directory: $bpldir")\n"
+    else
+      echo -e "\n$(red "       ✘ No BPL Node process is running")\n"
+    fi
+  else
+    echo -e "\n$(red "       ✘ No BPL Node installation is found")\n"
+  fi
+  pause
 }
 
-restart(){
+restart() {
 	asciiart
 	proc_vars
-	if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                echo -e "$(green "       Instance of BPL Node found with:")"
-                echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
-                echo -e "$(green "       Directory: $bpldir")\n"
+
+  if [ "$node" != "" ] && [ "$node" != "0" ]; then
+    echo -e "$(green "       Instance of BPL Node found with:")"
+    echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
+    echo -e "$(green "       Directory: $bpldir")\n"
 		echo -e "$(green "                Restarting...")"
 		forever restart $forever_process >&- 2>&-
 		echo -e "\n$(green "    ✔ BPL Node was successfully restarted")\n"
@@ -1161,52 +1178,52 @@ restart(){
 }
 
 # Stop Node
-killit(){
-        proc_vars
-        if [ -e $bpldir/app.js ]; then
-                clear
-                asciiart
-                echo -e "\n$(green "       ✔ BPL Node installation found!")\n"
-                if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                        echo -e "$(green " A working instance of BPL Node was found with:")"
-                        echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
-                        echo -e "$(green "   and Work Directory: $bpldir")\n"
-			echo -e "$(green "            Stopping BPL Node...")\n"
-			cd $bpldir
-			forever stop $forever_process >&- 2>&-
-			cd $parent
-			echo -e "$(green "    ✔ BPL Node was successfully stopped")\n"
-                else
-			echo -e "\n$(red "       ✘ No BPL Node process is running")\n"
-                fi
-        else
-                echo -e "\n$(red "       ✘ No BPL Node installation is found")\n"
-        fi
-pause
+killit() {
+  proc_vars
+  if [ -e $bpldir/app.js ]; then
+    clear
+    asciiart
+    echo -e "\n$(green "       ✔ BPL Node installation found!")\n"
+
+    if [ "$node" != "" ] && [ "$node" != "0" ]; then
+      echo -e "$(green " A working instance of BPL Node was found with:")"
+      echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
+      echo -e "$(green "   and Work Directory: $bpldir")\n"
+      echo -e "$(green "            Stopping BPL Node...")\n"
+      cd $bpldir
+      forever stop $forever_process >&- 2>&-
+      cd $parent
+      echo -e "$(green "    ✔ BPL Node was successfully stopped")\n"
+    else
+      echo -e "\n$(red "       ✘ No BPL Node process is running")\n"
+    fi
+
+  else
+    echo -e "\n$(red "       ✘ No BPL Node installation is found")\n"
+  fi
+  pause
 }
 
 # Logs
-log(){
+log() {
 	clear
 	echo -e "\n$(yellow " Use Ctrl+C to return to menu")\n"
 	proc_vars
 	trap : INT
 	tail -f $bpldir/logs/bpl.log
-#pause
+  # pause
 }
 
-subfive(){
-        clear
+subfive() {
+  clear
 	asciiart
 	purge_pgdb
-
 }
 
-subsix(){
-        clear
-        asciiart
-        change_address
-
+subsix() {
+  clear
+  asciiart
+  change_address
 }
 
 
@@ -1232,7 +1249,7 @@ show_menus() {
 	echo "              R. Restart BPL"
 	echo "              K. Kill BPL"
 	echo "              S. Node Status"
-        echo "              L. Node Log"
+  echo "              L. Node Log"
 	echo "              0. Exit"
 	echo
 	tput sgr0
@@ -1258,7 +1275,7 @@ sub_menu() {
 	tput sgr0
 }
 
-read_options(){
+read_options() {
 	local choice
 	read -p "        Enter choice [1 - 7,A,R,K,S,L]: " choice
 	case $choice in
@@ -1280,7 +1297,7 @@ read_options(){
 }
 
 
-read_sub_options(){
+read_sub_options() {
 	local choice1
 	read -p "          Enter choice [0 - 6]: " choice1
 	case $choice1 in
@@ -1296,19 +1313,17 @@ read_sub_options(){
 }
 
 
-
-
-
-
 # ----------------------------------------------
 # Trap CTRL+C, CTRL+Z and quit singles
 # ----------------------------------------------
+
 trap '' SIGINT SIGQUIT SIGTSTP
 
 
 # ----------------------------------------------
 # First Run Initial OS update and prerequisites
 # ----------------------------------------------
+
 if [ -e ./.firstrun ] ; then
 	sdate=$(date +"%Y%m%d")
 	fdate=$(date +"%Y%m%d")
@@ -1316,12 +1331,12 @@ else
 	fdate=$(date -r ./.firstrun +"%Y%m%d")
 fi
 
+# if [ -e ./.firstrun ] && [ $(date -r ./.firstrun +"%Y%m%d") <  $(date +"%Y%m%d") ]; then
 if [ -e ./.firstrun ] && [ "$fdate" <  "$sdate" ]; then
-#       if [ -e ./.firstrun ] && [ $(date -r ./.firstrun +"%Y%m%d") <  $(date +"%Y%m%d") ]; then
-                echo -e "$(yellow "      Checking for system updates...")\n"
-                os_up
-		log_rotate
-                touch ./.firstrun
+  echo -e "$(yellow "      Checking for system updates...")\n"
+  os_up
+  log_rotate
+  touch ./.firstrun
 fi
 
 if [ -e ./.firstrun ] && [ "$fdate" =  "$sdate" ]; then
@@ -1335,7 +1350,7 @@ else
 		db_up
 		clear
 		asciiart
-		######echo ""
+		# echo ""
 		echo -e "$(yellow "It's the first time you are starting this script!") "
 		echo -e "$(yellow "First it will check if your system is up to date") "
 		echo -e "$(yellow "install updates and needed prerequisites")\n"
@@ -1346,12 +1361,12 @@ else
 		asciiart
 		sleep 1
 		node_check iftop
-		        if [ "$return_" == 0 ]; then
-				echo -e "$(yellow "         Installing prerequisites...") "
-				prereq
-			else
-				echo -e "$(green "    ✔ Prerequisites are already installed")"
-			fi
+    if [ "$return_" == 0 ]; then
+			echo -e "$(yellow "         Installing prerequisites...") "
+			prereq
+		else
+			echo -e "$(green "    ✔ Prerequisites are already installed")"
+		fi
 		clear
 		asciiart
 		echo -e "$(yellow "        Setting up NTP and Locale...") "
@@ -1376,16 +1391,16 @@ fi
 
 sudo updatedb
 proc_vars
-#exit
+# exit
+
 
 # ----------------------------------------------
 # Menu infinite loop
 # ----------------------------------------------
 
-while true
-do
+while true; do
 	asciiart
-# HERE COMES THE GITHUB CHECK
+  # HERE COMES THE GITHUB CHECK
 	git_upd_check
 	show_menus
 	read_options
