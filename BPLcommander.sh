@@ -368,25 +368,30 @@ function db_up {
 # Update and upgrade the OS
 function os_up {
   asciiart
-  echo -e "$(yellow "        Checking for system updates...")\n"
-  sudo apt-get update >&- 2>&- #-yqq 2>/dev/null
-  avail_upd=`/usr/lib/update-notifier/apt-check 2>&1 | cut -d ';' -f 1`
-  sec_upd=`/usr/lib/update-notifier/apt-check 2>&1 | cut -d ';' -f 2`
 
-  if [ "$avail_upd" == 0 ]; then
-    echo -e "$(green "        There are no updates available")\n"
-    sleep 1
+  if [ ! $(dpkg-query -W -f='${Status}' update-notifier 2>/dev/null | grep -c "ok installed") -eq 0 ]; then
+    echo -e "$(yellow "        Checking for system updates...")\n"
+    sudo apt-get update >&- 2>&- #-yqq 2>/dev/null
+    avail_upd=`/usr/lib/update-notifier/apt-check 2>&1 | cut -d ';' -f 1`
+    sec_upd=`/usr/lib/update-notifier/apt-check 2>&1 | cut -d ';' -f 2`
+
+    if [ "$avail_upd" == 0 ]; then
+      echo -e "$(green "        There are no updates available")\n"
+      sleep 1
+    else
+      echo -e "\n$(red "        There are $avail_upd updates available")"
+      echo -e "$(red "        $sec_upd of them are security updates")"
+      echo -e "\n$(yellow "            Updating the system...")"
+      sudo apt-get upgrade -yqq >&- 2>&- #2>/dev/null
+      sudo apt-get dist-upgrade -yq >&- 2>&- #2>/dev/null
+      # sudo apt-get purge nodejs postgresql postgresql-contrib samba*
+      sudo apt-get autoremove -yyq >&- 2>&- #2>/dev/null
+      sudo apt-get autoclean -yq >&- 2>&- #2>/dev/null
+      echo -e "\n$(green "          ✔ The system was updated!")"
+      echo -e "\n$(red "        System restart is recommended!\n")"
+    fi
   else
-    echo -e "\n$(red "        There are $avail_upd updates available")"
-    echo -e "$(red "        $sec_upd of them are security updates")"
-    echo -e "\n$(yellow "            Updating the system...")"
-    sudo apt-get upgrade -yqq >&- 2>&- #2>/dev/null
-    sudo apt-get dist-upgrade -yq >&- 2>&- #2>/dev/null
-    # sudo apt-get purge nodejs postgresql postgresql-contrib samba*
-    sudo apt-get autoremove -yyq >&- 2>&- #2>/dev/null
-    sudo apt-get autoclean -yq >&- 2>&- #2>/dev/null
-    echo -e "\n$(green "          ✔ The system was updated!")"
-    echo -e "\n$(red "        System restart is recommended!\n")"
+    echo -e "$(yellow "      Package update-notifier is missing.")\n"
   fi
 }
 
