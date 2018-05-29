@@ -1026,40 +1026,50 @@ four() {
   asciiart
   proc_vars
 
-  if [ "$node" != "" ] && [ "$node" != "0" ]; then
-    echo -e "$(green "       Instance of BPL Node found with:")"
-    echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
-    echo -e "$(green "       Directory: $bpldir")\n"
-    echo -e "\n$(green "            Stopping BPL Node...")\n"
-    cd $bpldir
-    forever stop $forever_process >&- 2>&-
-    echo -e "$(green "             Dropping BPL DB...")\n"
-    drop_db
-    drop_user
-    echo -e "$(green "             Creating BPL DB...")\n"
-    create_db
+  echo -e "    $(ired "                                        ")"
+  echo -e "    $(ired "   WARNING! This option will stop all   ")"
+  echo -e "    $(ired "   running BPL Node processes, remove   ")"
+  echo -e "    $(ired "   and rebuild the databases! Are you   ")"
+  echo -e "    $(ired "   REALLY sure?                         ")"
+  echo -e "    $(ired "                                        ")"
+  read -e -r -p "$(yellow "\n    Type (Y) to proceed or (N) to cancel: ")" -i "N" YN
 
-    # Here should come the snap choice
-    snap_menu
-    echo -e "$(green "            Starting BPL Node...")"
-    forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
-    echo -e "\n$(green "    ✔ BPL Node was successfully started")\n"
-    pause
-  else
-    echo -e "\n$(red "       ✘ BPL Node process is not running")\n"
-    echo -e "$(green "             Dropping BPL DB...")\n"
-    drop_db
-    drop_user
-    echo -e "$(green "             Creating BPL DB...")\n"
-    create_db
+  if [[ "$YN" =~ [Yy]$ ]]; then
+    if [ "$node" != "" ] && [ "$node" != "0" ]; then
+      echo -e "$(green "       Instance of BPL Node found with:")"
+      echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
+      echo -e "$(green "       Directory: $bpldir")\n"
+      echo -e "\n$(green "            Stopping BPL Node...")\n"
+      cd $bpldir
+      forever stop $forever_process >&- 2>&-
+      echo -e "$(green "             Dropping BPL DB...")\n"
+      drop_db
+      drop_user
+      echo -e "$(green "             Creating BPL DB...")\n"
+      create_db
 
-    # Here should come the snap choice
-    snap_menu
-    echo -e "$(green "            Starting BPL Node...")"
-    cd $bpldir
-    forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
-    echo -e "$(green "    ✔ BPL Node was successfully started")\n"
-    pause
+      # Here should come the snap choice
+      snap_menu
+      echo -e "$(green "            Starting BPL Node...")"
+      forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
+      echo -e "\n$(green "    ✔ BPL Node was successfully started")\n"
+      pause
+    else
+      echo -e "\n$(red "       ✘ BPL Node process is not running")\n"
+      echo -e "$(green "             Dropping BPL DB...")\n"
+      drop_db
+      drop_user
+      echo -e "$(green "             Creating BPL DB...")\n"
+      create_db
+
+      # Here should come the snap choice
+      snap_menu
+      echo -e "$(green "            Starting BPL Node...")"
+      cd $bpldir
+      forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
+      echo -e "$(green "    ✔ BPL Node was successfully started")\n"
+      pause
+    fi
   fi
 }
 
