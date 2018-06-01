@@ -259,9 +259,7 @@ change_address() {
     fi
   done
 
-  if [ "$DID_BREAK" -eq 1 ] ; then
-    init
-  else
+  if [ "$DID_BREAK" -eq 0 ] ; then
     ADDRESS=$inaddress
     sed -i "1,/\(.*ADDRESS\=\)/s#\(.*ADDRESS\=\)\(.*\)#\1"\"$inaddress\""#" $DIR/$BASH_SOURCE
   fi
@@ -287,9 +285,7 @@ change_snapurl() {
     fi
   done
 
-  if [ "$DID_BREAK" -eq 1 ] ; then
-    init
-  else
+  if [ "$DID_BREAK" -eq 0 ] ; then
     SNAPURL=$insnapurl
     sed -i "1,/\(.*SNAPURL\=\)/s#\(.*SNAPURL\=\)\(.*\)#\1"\"$insnapurl\""#" $DIR/$BASH_SOURCE
   fi
@@ -683,8 +679,8 @@ function snap_menu {
     read -e -r -p "$(yellow "\n Do you like to download the latest snapshot? (Y/n) ")" -i "Y" YN
 
     if [[ "$YN" =~ [Yy]$ ]]; then
-      echo -e "$(yellow "\n     Downloading current snapshot from BPL.IO\n")"
-      wget -nv https://snapshots.blockpool.io/current -O $SNAPDIR/current
+      echo -e "$(yellow "\n         Downloading current snapshot\n")"
+      wget -nv $SNAPURL -O $SNAPDIR/current
       echo -e "$(yellow "\n              Download finished\n")"
     fi
 
