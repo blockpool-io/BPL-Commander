@@ -940,14 +940,14 @@ one() {
       clear
       asciiart
 
-      echo -e "$(yellow "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")"
-      echo -e "$(green "           Choose your Network:")"
-      echo -e "$(yellow "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n")"
+      echo "         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+      echo "                  N E T W O R K"
+      echo "         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
-      echo "             1: Mainnet"
-      echo "             2: Testnet"
+      echo "                  1: Mainnet"
+      echo "                  2: Testnet"
 
-      read -ep "$(yellow "\n       Which network should be configured? ")" -i 1 reply
+      read -ep "$(yellow "\n       Which network should be configured?")" -i 1 reply
 
       if [ "$reply" -eq 2 ]; then
         BPLNET="testnet"
