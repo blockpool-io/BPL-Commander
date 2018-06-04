@@ -85,6 +85,8 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 BPLNET=""
 
+SWITCHNET=0
+
 re='^[0-9]+$' # For numeric checks
 
 # Logfile
@@ -947,7 +949,7 @@ one() {
       echo "                  1: Mainnet"
       echo "                  2: Testnet"
 
-      read -ep "$(yellow "\n       Which network should be configured?")" -i 1 reply
+      read -ep "$(yellow "\n       Which network should be configured?") " -i 1 reply
 
       if [ "$reply" -eq 2 ]; then
         BPLNET="testnet"
