@@ -234,7 +234,7 @@ query() {
   MISS_BLOCKS="$(psql -d bpl_mainnet -t -c 'SELECT missedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
   #BALANCE="$(psql -d bpl_mainnet -t -c 'SELECT (balance/100000000.0) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | sed -e 's/^[[:space:]]*//')"
   BALANCE="$(psql -d bpl_mainnet -t -c 'SELECT to_char(("balance"/100000000.0), '"'FM 999,999,999,990D00000000'"' ) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-  FORGED="$(psql -d bpl_mainnet -t -c 'SELECT to_char((("fees + rewards")/100000000.0), '"'FM 999,999,999,990D00000000'"' ) as total_forged FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+  FORGED="$(psql -d bpl_mainnet -t -c 'SELECT to_char((("fees" + "rewards")/100000000.0), '"'FM 999,999,999,990D00000000'"' ) as total_forged FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
   HEIGHT="$(psql -d bpl_mainnet -t -c 'SELECT height FROM blocks ORDER BY HEIGHT DESC LIMIT 1;' | xargs)"
   RANK="$(psql -d bpl_mainnet -t -c 'WITH RANK AS (SELECT DISTINCT "publicKey", "vote", "round", row_number() over (order by "vote" desc nulls last) as "rownum" FROM mem_delegates where "round" = (select max("round") from mem_delegates) ORDER BY "vote" DESC) SELECT "rownum" FROM RANK WHERE "publicKey" = '"'"$PUBKEY"'"';' | xargs)"
 }
@@ -259,9 +259,7 @@ change_address() {
     fi
   done
 
-  if [ "$DID_BREAK" -eq 1 ] ; then
-    init
-  else
+  if [ "$DID_BREAK" -eq 0 ] ; then
     ADDRESS=$inaddress
     sed -i "1,/\(.*ADDRESS\=\)/s#\(.*ADDRESS\=\)\(.*\)#\1"\"$inaddress\""#" $DIR/$BASH_SOURCE
   fi
@@ -287,9 +285,7 @@ change_snapurl() {
     fi
   done
 
-  if [ "$DID_BREAK" -eq 1 ] ; then
-    init
-  else
+  if [ "$DID_BREAK" -eq 0 ] ; then
     SNAPURL=$insnapurl
     sed -i "1,/\(.*SNAPURL\=\)/s#\(.*SNAPURL\=\)\(.*\)#\1"\"$insnapurl\""#" $DIR/$BASH_SOURCE
   fi
@@ -683,8 +679,8 @@ function snap_menu {
     read -e -r -p "$(yellow "\n Do you like to download the latest snapshot? (Y/n) ")" -i "Y" YN
 
     if [[ "$YN" =~ [Yy]$ ]]; then
-      echo -e "$(yellow "\n     Downloading current snapshot from BPL.IO\n")"
-      wget -nv https://snapshots.blockpool.io/current -O $SNAPDIR/current
+      echo -e "$(yellow "\n         Downloading current snapshot\n")"
+      wget -nv $SNAPURL -O $SNAPDIR/current
       echo -e "$(yellow "\n              Download finished\n")"
     fi
 
