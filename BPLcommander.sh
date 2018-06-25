@@ -72,7 +72,7 @@ fi
 
 EDIT=nano
 
-GIT_ORIGIN=bpl-mainnet
+GIT_ORIGIN="bpl-mainnet"
 
 LOC_SERVER="http://localhost:9030"
 
@@ -92,12 +92,19 @@ re='^[0-9]+$' # For numeric checks
 # Logfile
 log="install_bpl.log"
 
-#~ SEED NODES ~#
-seed0=("13.56.163.57:9030" "seed01")
-seed1=("54.183.132.15:9030" "seed02")
-seed2=("54.183.69.30:9030" "seed03")
-seed3=("54.183.152.67:9030" "seed04")
-seed4=("54.183.22.145:9030" "seed05")
+#~ Mainnet Seed Nodes ~#
+mn_seed0=("13.56.163.57:9030" "seed01")
+mn_seed1=("54.183.132.15:9030" "seed02")
+mn_seed2=("54.183.69.30:9030" "seed03")
+mn_seed3=("54.183.152.67:9030" "seed04")
+mn_seed4=("54.183.22.145:9030" "seed05")
+
+#~ Testnet Seed Nodes ~#
+tn_seed0=("35.180.64.83:9028" "seed01")
+tn_seed1=("35.180.24.146:9028" "seed02")
+tn_seed2=("35.180.62.48:9028" "seed03")
+tn_seed3=("52.47.178.46:9028" "seed04")
+tn_seed4=("35.180.121.78:9028" "seed05")
 
 #~ API CALL ~#
 apicall="/api/loader/status/sync"
@@ -110,7 +117,8 @@ apicall="/api/loader/status/sync"
 declare -a array=("postgresql" "postgresql-contrib" "libpq-dev" "build-essential" "python" "git" "curl" "jq" "libtool" "autoconf" "locales" "automake" "locate" "wget" "zip" "unzip" "htop" "nmon" "iftop" "update-notifier")
 
 #~ Network height checker ~#
-declare -a nodes=(seed0[@] seed1[@] seed2[@] seed3[@] seed4[@])
+declare -a mn_nodes=(mn_seed0[@] mn_seed1[@] mn_seed2[@] mn_seed3[@] mn_seed4[@])
+declare -a tn_nodes=(tn_seed0[@] tn_seed1[@] tn_seed2[@] tn_seed3[@] tn_seed4[@])
 declare -a height=()
 
 # Get array length
@@ -160,24 +168,34 @@ pause() {
 
 function net_height {
   # Spawning curl netheight processes loop
-  for n in {1..$arraylength..$arraylength}; do
-    for (( i=1; i<${arraylength}+1; i++ )); do
-      saddr=${!nodes[i-1]:0:1}
-      echo $i $(curl -m 3 -s $saddr$apicall | cut -f 5 -d ":" | sed 's/,.*//' | sed 's/}$//') >> $HOME/tout.txt &
+  if [ "$BPLNET" -eq "" ]; then
+    highest=0
+  else
+    if [ "$BPLNET" -eq "mainnet" ]; then
+      nodes=$mn_nodes
+    elif [ "$BPLNET" -eq "testnet" ]; then
+      nodes=$tn_nodes
+    fi
+
+    for n in {1..$arraylength..$arraylength}; do
+      for (( i=1; i<${arraylength}+1; i++ )); do
+        saddr=${!nodes[i-1]:0:1}
+        echo $i $(curl -m 3 -s $saddr$apicall | cut -f 5 -d ":" | sed 's/,.*//' | sed 's/}$//') >> $HOME/tout.txt &
+      done
+        wait
     done
-      wait
-  done
 
-  # Array read
-  while read ind line; do
-    height[$ind]=$line # assign array values
-  done < $HOME/tout.txt
-  rm $HOME/tout.txt
+    # Array read
+    while read ind line; do
+      height[$ind]=$line # assign array values
+    done < $HOME/tout.txt
+    rm $HOME/tout.txt
 
-  # Finding the highest seednodes block
-  IFS=$'\n'
-  highest=($(sort -nr <<<"${height[*]}"))
-  unset IFS
+    # Finding the highest seednodes block
+    IFS=$'\n'
+    highest=($(sort -nr <<<"${height[*]}"))
+    unset IFS
+  fi
 }
 
 # Find parent PID
