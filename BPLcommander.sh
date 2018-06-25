@@ -122,7 +122,7 @@ declare -a tn_nodes=(tn_seed0[@] tn_seed1[@] tn_seed2[@] tn_seed3[@] tn_seed4[@]
 declare -a height=()
 
 # Get array length
-arraylength=${#nodes[@]}
+arraylength=${#mn_nodes[@]}
 
 # ----------------------------------
 # Functions
@@ -180,7 +180,6 @@ function net_height {
     for n in {1..$arraylength..$arraylength}; do
       for (( i=1; i<${arraylength}+1; i++ )); do
         saddr=${!nodes[i-1]:0:1}
-        touch $HOME/tout.txt
         echo $i $(curl -m 3 -s $saddr$apicall | cut -f 5 -d ":" | sed 's/,.*//' | sed 's/}$//') >> $HOME/tout.txt &
       done
         wait
