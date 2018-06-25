@@ -168,12 +168,12 @@ pause() {
 
 function net_height {
   # Spawning curl netheight processes loop
-  if [ "$BPLNET" -eq "" ]; then
+  if [ "$BPLNET" = "" ]; then
     highest=0
   else
-    if [ "$BPLNET" -eq "mainnet" ]; then
+    if [ "$BPLNET" = "mainnet" ]; then
       nodes=$mn_nodes
-    elif [ "$BPLNET" -eq "testnet" ]; then
+    elif [ "$BPLNET" = "testnet" ]; then
       nodes=$tn_nodes
     fi
 
