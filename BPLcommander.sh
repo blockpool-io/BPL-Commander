@@ -72,7 +72,7 @@ fi
 
 EDIT=nano
 
-GIT_ORIGIN=bpl-mainnet
+GIT_ORIGIN="bpl-mainnet"
 
 LOC_SERVER="http://localhost:9030"
 
@@ -83,19 +83,28 @@ SNAPURL="https://snapshots.blockpool.io/current"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-BPLNET=mainnet
+BPLNET=""
+
+SWITCHNET=0
 
 re='^[0-9]+$' # For numeric checks
 
 # Logfile
 log="install_bpl.log"
 
-#~ SEED NODES ~#
-seed0=("13.56.163.57:9030" "seed01")
-seed1=("54.183.132.15:9030" "seed02")
-seed2=("54.183.69.30:9030" "seed03")
-seed3=("54.183.152.67:9030" "seed04")
-seed4=("54.183.22.145:9030" "seed05")
+#~ Mainnet Seed Nodes ~#
+mn_seed0=("13.56.163.57:9030" "seed01")
+mn_seed1=("54.183.132.15:9030" "seed02")
+mn_seed2=("54.183.69.30:9030" "seed03")
+mn_seed3=("54.183.152.67:9030" "seed04")
+mn_seed4=("54.183.22.145:9030" "seed05")
+
+#~ Testnet Seed Nodes ~#
+tn_seed0=("35.180.64.83:9028" "seed01")
+tn_seed1=("35.180.24.146:9028" "seed02")
+tn_seed2=("35.180.62.48:9028" "seed03")
+tn_seed3=("52.47.178.46:9028" "seed04")
+tn_seed4=("35.180.121.78:9028" "seed05")
 
 #~ API CALL ~#
 apicall="/api/loader/status/sync"
@@ -108,11 +117,12 @@ apicall="/api/loader/status/sync"
 declare -a array=("postgresql" "postgresql-contrib" "libpq-dev" "build-essential" "python" "git" "curl" "jq" "libtool" "autoconf" "locales" "automake" "locate" "wget" "zip" "unzip" "htop" "nmon" "iftop" "update-notifier")
 
 #~ Network height checker ~#
-declare -a nodes=(seed0[@] seed1[@] seed2[@] seed3[@] seed4[@])
+declare -a mn_nodes=(mn_seed0[@] mn_seed1[@] mn_seed2[@] mn_seed3[@] mn_seed4[@])
+declare -a tn_nodes=(tn_seed0[@] tn_seed1[@] tn_seed2[@] tn_seed3[@] tn_seed4[@])
 declare -a height=()
 
 # Get array length
-arraylength=${#nodes[@]}
+arraylength=${#mn_nodes[@]}
 
 # ----------------------------------
 # Functions
@@ -139,11 +149,14 @@ $$ |  $$\$$ |  $$ |$$ | $$ | $$ |$$ | $$ | $$ |$$  __$$ |$$ |  $$ |$$ |  $$ |$$ 
 \$$$$$$  \$$$$$$  |$$ | $$ | $$ |$$ | $$ | $$ |\$$$$$$$ |$$ |  $$ |\$$$$$$$ |\$$$$$$$\ $$ |
  \______/ \______/ \__| \__| \__|\__| \__| \__| \_______|\__|  \__| \_______| \_______|\__|
 
-
-
-                                W E L C O M E  A B O A R D !
-
 EOF
+echo "                                W E L C O M E  A B O A R D !"
+if [ ! "$BPLNET" == "" ]; then
+  echo -e "                                      Network: $BPLNET\n"
+else
+  echo
+fi
+
 tput sgr0
 }
 
@@ -155,24 +168,34 @@ pause() {
 
 function net_height {
   # Spawning curl netheight processes loop
-  for n in {1..$arraylength..$arraylength}; do
-    for (( i=1; i<${arraylength}+1; i++ )); do
-      saddr=${!nodes[i-1]:0:1}
-      echo $i $(curl -m 3 -s $saddr$apicall | cut -f 5 -d ":" | sed 's/,.*//' | sed 's/}$//') >> $HOME/tout.txt &
+  if [ "$BPLNET" = "" ]; then
+    highest=0
+  else
+    if [ "$BPLNET" = "mainnet" ]; then
+      nodes=$mn_nodes
+    elif [ "$BPLNET" = "testnet" ]; then
+      nodes=$tn_nodes
+    fi
+
+    for n in {1..$arraylength..$arraylength}; do
+      for (( i=1; i<${arraylength}+1; i++ )); do
+        saddr=${!nodes[i-1]:0:1}
+        echo $i $(curl -m 3 -s $saddr$apicall | cut -f 5 -d ":" | sed 's/,.*//' | sed 's/}$//') >> $HOME/tout.txt &
+      done
+        wait
     done
-      wait
-  done
 
-  # Array read
-  while read ind line; do
-    height[$ind]=$line # assign array values
-  done < $HOME/tout.txt
-  rm $HOME/tout.txt
+    # Array read
+    while read ind line; do
+      height[$ind]=$line # assign array values
+    done < $HOME/tout.txt
+    rm $HOME/tout.txt
 
-  # Finding the highest seednodes block
-  IFS=$'\n'
-  highest=($(sort -nr <<<"${height[*]}"))
-  unset IFS
+    # Finding the highest seednodes block
+    IFS=$'\n'
+    highest=($(sort -nr <<<"${height[*]}"))
+    unset IFS
+  fi
 }
 
 # Find parent PID
@@ -228,15 +251,15 @@ function proc_vars {
 
 #PSQL Queries
 query() {
-  PUBKEY="$(psql -d bpl_mainnet -t -c 'SELECT ENCODE("publicKey",'"'"'hex'"'"') as "publicKey" FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-  DNAME="$(psql -d bpl_mainnet -t -c 'SELECT username FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-  PROD_BLOCKS="$(psql -d bpl_mainnet -t -c 'SELECT producedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-  MISS_BLOCKS="$(psql -d bpl_mainnet -t -c 'SELECT missedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-  #BALANCE="$(psql -d bpl_mainnet -t -c 'SELECT (balance/100000000.0) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | sed -e 's/^[[:space:]]*//')"
-  BALANCE="$(psql -d bpl_mainnet -t -c 'SELECT to_char(("balance"/100000000.0), '"'FM 999,999,999,990D00000000'"' ) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-  FORGED="$(psql -d bpl_mainnet -t -c 'SELECT to_char((("fees" + "rewards")/100000000.0), '"'FM 999,999,999,990D00000000'"' ) as total_forged FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-  HEIGHT="$(psql -d bpl_mainnet -t -c 'SELECT height FROM blocks ORDER BY HEIGHT DESC LIMIT 1;' | xargs)"
-  RANK="$(psql -d bpl_mainnet -t -c 'WITH RANK AS (SELECT DISTINCT "publicKey", "vote", "round", row_number() over (order by "vote" desc nulls last) as "rownum" FROM mem_delegates where "round" = (select max("round") from mem_delegates) ORDER BY "vote" DESC) SELECT "rownum" FROM RANK WHERE "publicKey" = '"'"$PUBKEY"'"';' | xargs)"
+  PUBKEY="$(psql -d bpl_$BPLNET -t -c 'SELECT ENCODE("publicKey",'"'"'hex'"'"') as "publicKey" FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+  DNAME="$(psql -d bpl_$BPLNET -t -c 'SELECT username FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+  PROD_BLOCKS="$(psql -d bpl_$BPLNET -t -c 'SELECT producedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+  MISS_BLOCKS="$(psql -d bpl_$BPLNET -t -c 'SELECT missedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+  #BALANCE="$(psql -d bpl_$BPLNET -t -c 'SELECT (balance/100000000.0) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | sed -e 's/^[[:space:]]*//')"
+  BALANCE="$(psql -d bpl_$BPLNET -t -c 'SELECT to_char(("balance"/100000000.0), '"'FM 999,999,999,990D00000000'"' ) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+  FORGED="$(psql -d bpl_$BPLNET -t -c 'SELECT to_char((("fees" + "rewards")/100000000.0), '"'FM 999,999,999,990D00000000'"' ) as total_forged FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+  HEIGHT="$(psql -d bpl_$BPLNET -t -c 'SELECT height FROM blocks ORDER BY HEIGHT DESC LIMIT 1;' | xargs)"
+  RANK="$(psql -d bpl_$BPLNET -t -c 'WITH RANK AS (SELECT DISTINCT "publicKey", "vote", "round", row_number() over (order by "vote" desc nulls last) as "rownum" FROM mem_delegates where "round" = (select max("round") from mem_delegates) ORDER BY "vote" DESC) SELECT "rownum" FROM RANK WHERE "publicKey" = '"'"$PUBKEY"'"';' | xargs)"
 }
 
 # Stats Address Change
@@ -291,6 +314,13 @@ change_snapurl() {
   fi
 }
 
+
+# Switches the network
+switch_net() {
+  SWITCHNET=1
+  two
+}
+
 # Forging Turn
 turn() {
   if [ "$ADDRESS" == "" ] ; then
@@ -332,6 +362,7 @@ while true; do
   echo -e "$(green "                   NODE STATS")"
   echo -e "$(yellow "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")"
   echo
+  echo -e "$(green "      Network          : ")$(yellow "$BPLNET")"
   echo -e "$(green "      Delegate         : ")$(yellow "$DNAME")"
   echo -e "$(green "      Forging          : ")$(yellow "$is_forging")"
   echo -e "$(green "      Current Rank     : ")$(yellow "$RANK")"
@@ -357,7 +388,7 @@ while true; do
       echo -e "\n$(red "       ✘ No BPL Node process is running")\n"
     fi
   else
-    echo -e "\n$(red "       ✘ No BPL Node installation is found")\n"
+    echo -e "\n$(red "       ✘ No BPL Node installation found")\n"
   fi
 
   echo -e "\n$(yellow "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")"
@@ -664,7 +695,7 @@ function snap_menu {
       ## Numeric checks
       if [ $REPLY -le ${#snapshots[*]} ]; then
         echo -e "$(yellow "\n         Restoring snapshot ${snapshots[$((REPLY-1))]}")\n"
-        pg_restore -O -j 8 -d bpl_mainnet $SNAPDIR/${snapshots[$(($REPLY-1))]} 2>/dev/null
+        pg_restore -O -j 8 -d bpl_$BPLNET $SNAPDIR/${snapshots[$(($REPLY-1))]} 2>/dev/null
         echo -e "$(green "   Snapshot ${snapshots[$(($REPLY-1))]} was restored successfully")\n"
       else
         echo -e "$(red "\n        Value is out of list range!\n")"
@@ -689,7 +720,7 @@ function snap_menu {
       if [[ "$YN" =~ [Yy]$ ]]; then
         # here calling the db_restore function
         echo -e "$(yellow "\n   Restoring $SNAPDIR/current ... ")"
-        pg_restore -O -j 8 -d bpl_mainnet $SNAPDIR/current 2>/dev/null
+        pg_restore -O -j 8 -d bpl_$BPLNET $SNAPDIR/current 2>/dev/null
         echo -e "$(green "\n    Current snapshot has been restored\n")"
       fi
     else
@@ -789,7 +820,7 @@ function create_db {
   sudo -u postgres psql -c "update pg_database set encoding = 6, datcollate = 'en_US.UTF8', datctype = 'en_US.UTF8' where datname = 'template1';" >&- 2>&-
   sudo -u postgres psql -c "CREATE USER $USER WITH PASSWORD 'Password' CREATEDB;" >&- 2>&-
   sleep 1
-  createdb bpl_mainnet
+  createdb bpl_$BPLNET
 }
 
 # Check if DB exists
@@ -799,13 +830,18 @@ function db_exists {
     sudo service postgresql start
   fi
 
-  if [[ ! $(sudo -u postgres psql bpl_mainnet -c '\q' 2>&1) ]]; then
-    read -r -n 1 -p "$(yellow "  Database exists! Do you want to drop it? (y/n):") " YN
+  if $(sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw bpl_$BPLNET); then
+    read -e -r -p "$(yellow "  Database 'bpl_$BPLNET' exists! Do you want to drop it? (y/n): ")" -i "N" YN
+
     if [[ "$YN" =~ [Yy]$ ]]; then
+      echo -e "$(green "\n             Dropping 'bpl_$BPLNET'...")\n"
       drop_db;
+      echo -e "$(green "          'bpl_$BPLNET' has been dropped.")\n"
+      pause
+      true
     fi
   else
-    echo "Database not exist."
+    false
   fi
 }
 
@@ -834,7 +870,7 @@ function drop_db {
   if [ -z "$pgres" ]; then
     sudo service postgresql start
   fi
-  dropdb --if-exists bpl_mainnet
+  dropdb --if-exists bpl_$BPLNET
 }
 
 function drop_user {
@@ -850,29 +886,40 @@ function drop_user {
 }
 
 function update_bpl {
-  if [ "$UP_TO_DATE" -ne 1 ]; then
-    cd $bpldir
-    # forever stop app.js
-    TMP_PASS=$(jq -r '.forging.secret | @csv' config.$BPLNET.json)
-    mv config.mainnet.json ../
-    git pull origin $GIT_ORIGIN
-    git checkout $GIT_ORIGIN
-    npm install
-    sleep 1
+  cd $bpldir
+  # forever stop app.js
 
-    if [ ! -e config.$BPLNET.json ]; then
-      mv ../config.$BPLNET.json .
-    else
-      jq -r '.forging.secret = ['"$TMP_PASS"']' config.$BPLNET.json > config.$BPLNET.tmp && mv config.$BPLNET.tmp config.$BPLNET.json
-    fi
+  TMP_PASS_MN=$(jq -r '.forging.secret | @csv' config.mainnet.json)
+  cp config.mainnet.json ../
+  git checkout config.mainnet.json
 
-    unset TMP_PASS
-    # forever restart $forever_process
-    # forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json
+  TMP_PASS_TN=$(jq -r '.forging.secret | @csv' config.testnet.json)
+  cp config.testnet.json ../
+  git checkout config.testnet.json
+
+  git fetch origin
+  git checkout $GIT_ORIGIN
+  git pull origin $GIT_ORIGIN
+
+  npm install
+  sleep 1
+
+  if [ ! -e config.mainnet.json ]; then
+    mv ../config.mainnet.json .
   else
-    echo "BPL Node is already up to date!"
-    sleep 2
+    jq -r '.forging.secret = ['"$TMP_PASS_MN"']' config.mainnet.json > config.mainnet.tmp && mv config.mainnet.tmp config.mainnet.json
   fi
+
+  if [ ! -e config.testnet.json ]; then
+    mv ../config.testnet.json .
+  else
+    jq -r '.forging.secret = ['"$TMP_PASS_TN"']' config.testnet.json > config.testnet.tmp && mv config.testnet.tmp config.testnet.json
+  fi
+
+  unset TMP_PASS_MN
+  unset TMP_PASS_TN
+  # forever restart $forever_process
+  # forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json
 }
 
 # Put the password in config.mainnet.json
@@ -905,6 +952,31 @@ one() {
     fi
     pause
   else
+    if [ "$BPLNET" == "" ]; then
+      clear
+      asciiart
+
+      echo "         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+      echo "                  N E T W O R K"
+      echo "         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+
+      echo "                  1: Mainnet"
+      echo "                  2: Testnet"
+
+      read -ep "$(yellow "\n       Which network should be configured?") " -i 1 reply
+
+      if [ "$reply" -eq 2 ]; then
+        BPLNET="testnet"
+        GIT_ORIGIN="testnet"
+      else
+        BPLNET="mainnet"
+        GIT_ORIGIN="bpl-mainnet"
+      fi
+
+      sed -i "1,/\(.*BPLNET\=\)/s#\(.*BPLNET\=\)\(.*\)#\1"\"$BPLNET\""#" $DIR/$BASH_SOURCE
+      sed -i "1,/\(.*GIT_ORIGIN\=\)/s#\(.*GIT_ORIGIN\=\)\(.*\)#\1"\"$GIT_ORIGIN\""#" $DIR/$BASH_SOURCE
+    fi
+
     clear
     asciiart
     echo -e "$(yellow "           Installing BPL node....")"
@@ -917,7 +989,7 @@ one() {
     sleep 1
     proc_vars
     log_rotate
-    config="$parent/config.mainnet.json"
+    config="$parent/config.$BPLNET.json"
     # echo "$config" 2>/dev/null
     # pause
     if  [ ! -e $config ] ; then
@@ -937,6 +1009,19 @@ two() {
   read -e -r -p "$(red "   Are you sure that you want to proceed? (Y/N): ")" -i "N" keys
 
   if [ "$keys" == "Y" ]; then
+    if [ "$SWITCHNET" -eq 1 ]; then
+      if [[ $BPLNET = "mainnet" ]]; then
+        BPLNET="testnet"
+        GIT_ORIGIN="testnet"
+      else
+        BPLNET="mainnet"
+        GIT_ORIGIN="bpl-mainnet"
+      fi
+
+      sed -i "1,/\(.*BPLNET\=\)/s#\(.*BPLNET\=\)\(.*\)#\1"\"$BPLNET\""#" $DIR/$BASH_SOURCE
+      sed -i "1,/\(.*GIT_ORIGIN\=\)/s#\(.*GIT_ORIGIN\=\)\(.*\)#\1"\"$GIT_ORIGIN\""#" $DIR/$BASH_SOURCE
+    fi
+
     proc_vars
     if [ -e $bpldir/app.js ]; then
       clear
@@ -955,14 +1040,14 @@ two() {
       echo -e "$(yellow "    Backing up configuration file to $parent")\n"
       sleep 1
 
-      if [ -e $parent/config.mainnet.json ] ; then
+      if [ -e $parent/config.$BPLNET.json ] ; then
         read -e -r -p "$(yellow "    Backup file exists! Overwrite? (Y/N): ")" -i "Y" keys
         if [ "$keys" == "Y" ]; then
-          cp $bpldir/config.mainnet.json $parent
+          cp $bpldir/config.$BPLNET.json $parent
           cd $parent
         fi
       else
-        cp $bpldir/config.mainnet.json $parent
+        cp $bpldir/config.$BPLNET.json $parent
         cd $parent
       fi
 
@@ -974,11 +1059,11 @@ two() {
       one
       echo ""
 
-      if [ -e $parent/config.mainnet.json ] ; then
+      if [ -e $parent/config.$BPLNET.json ] ; then
         read -e -r -p "$(yellow " Do you want to restore your config? (Y/N): ")" -i "Y" keys
         # echo "Break1"; pause
         if [ "$keys" == "Y" ]; then
-          cp $parent/config.mainnet.json $bpldir
+          cp $parent/config.$BPLNET.json $bpldir
           echo -e "\n$(green " ✔ Config was restored in $bpldir")\n"
           read -e -r -p "$(yellow " Do you want to start BPL Node now? (Y/N): ")" -i "Y" keys
           if [ "$keys" == "Y" ]; then
@@ -999,10 +1084,10 @@ two() {
       one
       proc_vars
 
-      if [ -e $parent/config.mainnet.json ] ; then
+      if [ -e $parent/config.$BPLNET.json ] ; then
         read -e -r -p "$(yellow " Do you want to restore your config? (Y/N): ")" -i "Y" keys
         if [ "$keys" == "Y" ]; then
-          cp $parent/config.mainnet.json $bpldir
+          cp $parent/config.$BPLNET.json $bpldir
           echo -e "\n$(green " ✔ Config was restored in $bpldir")\n"
         fi
       else
@@ -1041,7 +1126,7 @@ three() {
       echo -e "\n$(red "       ✘ BPL Node process is not running")\n"
       echo -e "$(green "            Updating BPL Node...")\n"
       update_bpl
-      forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
+      forever start app.js --genesis genesisBlock.$BPLNET.json --config config.$BPLNET.json >&- 2>&-
       echo -e "$(green "    ✔ BPL Node was successfully started")\n"
       pause
     fi
@@ -1080,7 +1165,7 @@ four() {
       # Here should come the snap choice
       snap_menu
       echo -e "$(green "            Starting BPL Node...")"
-      forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
+      forever start app.js --genesis genesisBlock.$BPLNET.json --config config.$BPLNET.json >&- 2>&-
       echo -e "\n$(green "    ✔ BPL Node was successfully started")\n"
       pause
     else
@@ -1095,7 +1180,7 @@ four() {
       snap_menu
       echo -e "$(green "            Starting BPL Node...")"
       cd $bpldir
-      forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
+      forever start app.js --genesis genesisBlock.$BPLNET.json --config config.$BPLNET.json >&- 2>&-
       echo -e "$(green "    ✔ BPL Node was successfully started")\n"
       pause
     fi
@@ -1122,7 +1207,7 @@ five() {
     else
       echo -e "\n$(red "       ✘ BPL Node process is not running")\n"
       echo -e "$(green "            Starting BPL Node...")\n"
-      forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
+      forever start app.js --genesis genesisBlock.$BPLNET.json --config config.$BPLNET.json >&- 2>&-
       echo -e "$(green "    ✔ BPL Node was successfully started")\n"
       pause
     fi
@@ -1163,9 +1248,9 @@ start() {
       echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
       echo -e "$(green "   and Work Directory: $bpldir")\n"
     else
-      echo -e "$(green "            Starting BPL Node...")\n"
+      echo -e "$(green "       Starting BPL Node ($BPLNET)...")\n"
       cd $bpldir
-      forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
+      forever start app.js --genesis genesisBlock.$BPLNET.json --config config.$BPLNET.json >&- 2>&-
       cd $parent
       echo -e "$(green "    ✔ BPL Node was successfully started")\n"
       sleep 1
@@ -1273,6 +1358,12 @@ subseven() {
   change_snapurl
 }
 
+subeight() {
+  clear
+  asciiart
+  switch_net
+}
+
 # Menu
 show_menus() {
   tput bold; tput setaf 3
@@ -1314,7 +1405,12 @@ sub_menu() {
   echo "           5. Purge PostgeSQL"
   echo "           6. Replace Delegate Address"
   echo "           7. Replace Snapshot URL"
-  echo "           0. Exit to Main Manu"
+  if [[ $BPLNET = "mainnet" ]]; then
+    echo "           8. Switch to testnet"
+  else
+    echo "           8. Switch to mainnet"
+  fi
+  echo "           0. Exit to Main Menu"
   echo
   echo "         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
   echo
@@ -1323,7 +1419,7 @@ sub_menu() {
 
 read_options() {
   local choice
-  read -p "        Enter choice [1 - 7,A,R,K,S,L]: " choice
+  read -p "        Enter choice [0 - 7,A,R,K,S,L]: " choice
   case $choice in
     1) one ;;
     2) two ;;
@@ -1345,7 +1441,7 @@ read_options() {
 
 read_sub_options() {
   local choice1
-  read -p "          Enter choice [0 - 7]: " choice1
+  read -p "          Enter choice [0 - 8]: " choice1
   case $choice1 in
     1) subone ;;
     2) subtwo ;;
@@ -1354,6 +1450,7 @@ read_sub_options() {
     5) subfive ;;
     6) subsix ;;
     7) subseven ;;
+    8) subeight ;;
     0) return 1 ;;
     *) echo -e "$(red "             Incorrect option!")" && sleep 1
   esac
