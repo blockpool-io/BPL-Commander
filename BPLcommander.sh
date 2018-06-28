@@ -1010,6 +1010,8 @@ two() {
 
   if [ "$keys" == "Y" ]; then
     if [ "$SWITCHNET" -eq 1 ]; then
+      SWITCHNET=0
+
       if [[ $BPLNET = "mainnet" ]]; then
         BPLNET="testnet"
         GIT_ORIGIN="testnet"
