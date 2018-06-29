@@ -74,7 +74,9 @@ EDIT=nano
 
 GIT_ORIGIN="bpl-mainnet"
 
-LOC_SERVER="http://localhost:9030"
+PORT="9030"
+
+LOC_SERVER="http://localhost"
 
 ADDRESS=""
 
@@ -334,9 +336,9 @@ while true; do
   net_height
   asciiart
   proc_vars
-  queue=`curl --connect-timeout 3 -f -s $LOC_SERVER/api/delegates/getNextForgers?limit=201 | jq ".delegates"`
-  is_forging=`curl -s --connect-timeout 1 $LOC_SERVER/api/delegates/forging/status?publicKey=$PUBKEY 2>/dev/null | jq ".enabled"`
-  is_syncing=`curl -s --connect-timeout 1 $LOC_SERVER/api/loader/status/sync 2>/dev/null | jq ".syncing"`
+  queue=`curl --connect-timeout 3 -f -s $LOC_SERVER:$PORT/api/delegates/getNextForgers?limit=201 | jq ".delegates"`
+  is_forging=`curl -s --connect-timeout 1 $LOC_SERVER:$PORT/api/delegates/forging/status?publicKey=$PUBKEY 2>/dev/null | jq ".enabled"`
+  is_syncing=`curl -s --connect-timeout 1 $LOC_SERVER:$PORT/api/loader/status/sync 2>/dev/null | jq ".syncing"`
   BLOCK_SUM=$((MISS_BLOCKS+PROD_BLOCKS))
 
   if ! [[ $BLOCK_SUM -eq 0 ]]
@@ -403,8 +405,8 @@ while true; do
 function stats {
   asciiart
   proc_vars
-  is_forging=`curl -s --connect-timeout 1 $LOC_SERVER/api/delegates/forging/status?publicKey=$pubkey 2>/dev/null | jq ".enabled"`
-  is_syncing=`curl -s --connect-timeout 1 $LOC_SERVER/api/loader/status/sync 2>/dev/null | jq ".syncing"`
+  is_forging=`curl -s --connect-timeout 1 $LOC_SERVER:$PORT/api/delegates/forging/status?publicKey=$pubkey 2>/dev/null | jq ".enabled"`
+  is_syncing=`curl -s --connect-timeout 1 $LOC_SERVER:$PORT/api/loader/status/sync 2>/dev/null | jq ".syncing"`
 
   if [ "$node" != "" ] && [ "$node" != "0" ]; then
     echo -e "$(green "       Instance of BPL Node found with:")"
@@ -754,7 +756,7 @@ function nvm {
     nvm alias default 6.9.5 >>install.log
     echo -e "$(green "      ✔ Node `node -v` has been installed")"
   else
-    echo -e "$(green "      ✔ Node `node -v` is  alredy installed")"
+    echo -e "$(green "      ✔ Node `node -v` is  already installed")"
   fi
 
   node_check npm
@@ -764,7 +766,7 @@ function nvm {
     npm install -g npm >>install.log 2>&1
     echo -e "$(green "      ✔ NPM `npm -v` has been installed")"
   else
-    echo -e "$(green "      ✔ NPM `npm -v` is alredy installed")"
+    echo -e "$(green "      ✔ NPM `npm -v` is already installed")"
   fi
 
   node_check forever
@@ -774,7 +776,7 @@ function nvm {
     npm install forever -g >>install.log 2>&1
     echo -e "$(green "      ✔ Forever has been installed")"
   else
-    echo -e "$(green "      ✔ Forever is alredy installed")"
+    echo -e "$(green "      ✔ Forever is already installed")"
   fi
 
   # Setting fs.notify.max_user_watches
@@ -960,21 +962,34 @@ one() {
       echo "                  N E T W O R K"
       echo "         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
-      echo "                  1: Mainnet"
-      echo "                  2: Testnet"
+      echo "                   1:  Mainnet"
+      echo "                   2:  Testnet"
 
-      read -ep "$(yellow "\n       Which network should be configured?") " -i 1 reply
+      read -ep "$(yellow "\n       Which network should be configured?") " -i 1 REPLY
 
-      if [ "$reply" -eq 2 ]; then
-        BPLNET="testnet"
-        GIT_ORIGIN="testnet"
+      if [[ "${REPLY}" =~ $re ]]; then
+        if [ "$REPLY" -eq 1 ]; then
+          BPLNET="mainnet"
+          GIT_ORIGIN="bpl-mainnet"
+          PORT="9030"
+        elif [ "$REPLY" -eq 2 ]; then
+          BPLNET="testnet"
+          GIT_ORIGIN="testnet"
+          PORT="9028"
+        else
+          echo -e "$(red   "\n                 Invalid option!")"
+          sleep 1
+          return
+        fi
       else
-        BPLNET="mainnet"
-        GIT_ORIGIN="bpl-mainnet"
+        echo -e "$(red "\n             $REPLY is not a number!\n")"
+        sleep 1
+        return
       fi
 
       sed -i "1,/\(.*BPLNET\=\)/s#\(.*BPLNET\=\)\(.*\)#\1"\"$BPLNET\""#" $DIR/$BASH_SOURCE
       sed -i "1,/\(.*GIT_ORIGIN\=\)/s#\(.*GIT_ORIGIN\=\)\(.*\)#\1"\"$GIT_ORIGIN\""#" $DIR/$BASH_SOURCE
+      sed -i "1,/\(.*PORT\=\)/s#\(.*PORT\=\)\(.*\)#\1"\"$PORT\""#" $DIR/$BASH_SOURCE
     fi
 
     clear
@@ -1015,13 +1030,16 @@ two() {
       if [[ $BPLNET = "mainnet" ]]; then
         BPLNET="testnet"
         GIT_ORIGIN="testnet"
+        PORT="9028"
       else
         BPLNET="mainnet"
         GIT_ORIGIN="bpl-mainnet"
+        PORT="9030"
       fi
 
       sed -i "1,/\(.*BPLNET\=\)/s#\(.*BPLNET\=\)\(.*\)#\1"\"$BPLNET\""#" $DIR/$BASH_SOURCE
       sed -i "1,/\(.*GIT_ORIGIN\=\)/s#\(.*GIT_ORIGIN\=\)\(.*\)#\1"\"$GIT_ORIGIN\""#" $DIR/$BASH_SOURCE
+      sed -i "1,/\(.*PORT\=\)/s#\(.*PORT\=\)\(.*\)#\1"\"$PORT\""#" $DIR/$BASH_SOURCE
     fi
 
     proc_vars
