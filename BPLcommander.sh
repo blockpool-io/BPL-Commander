@@ -62,17 +62,16 @@ if [ $(systemd-detect-virt -c) != "none" ]; then
 fi
 
 # TEMP N
-# sudo apt-get install npm
-# sudo npm install -g n
-# sudo n 6.9.2
-
+sudo apt-get install npm
+sudo npm install -g n
+sudo n 9.10.0
 # ----------------------------------
 # Variables
 # ----------------------------------
 
 EDIT=nano
 
-GIT_ORIGIN="bpl-mainnet"
+GIT_ORIGIN="feature/packagejson"
 
 PORT="9030"
 
@@ -85,7 +84,7 @@ SNAPURL="https://snapshots.blockpool.io/current"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-BPLNET=""
+BPLNET="mainnet"
 
 SWITCHNET=0
 
@@ -794,7 +793,7 @@ function inst_bpl {
   # proc_vars
   cd $HOME
   mkdir BPL-node
-  git clone https://github.com/blockpool-io/BPL-node.git 2>/dev/null
+  git clone https://github.com/cyrus19901/BPL-node.git 2>/dev/null
   cd BPL-node
   git checkout $GIT_ORIGIN 2>/dev/null
   git pull origin $GIT_ORIGIN 2>/dev/null
