@@ -62,10 +62,9 @@ if [ $(systemd-detect-virt -c) != "none" ]; then
 fi
 
 # TEMP N
-# sudo apt-get install npm
-# sudo npm install -g n
-# sudo n 6.9.2
-
+sudo apt-get install npm
+sudo npm install -g n
+sudo n 9.10.0
 # ----------------------------------
 # Variables
 # ----------------------------------
