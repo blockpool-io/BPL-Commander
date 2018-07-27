@@ -71,7 +71,7 @@ sudo n 9.10.0
 
 EDIT=nano
 
-GIT_ORIGIN="feature/packagejson"
+GIT_ORIGIN="bpl-mainnet"
 
 PORT="9030"
 
@@ -84,7 +84,7 @@ SNAPURL="https://snapshots.blockpool.io/current"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-BPLNET="mainnet"
+BPLNET=""
 
 SWITCHNET=0
 
@@ -793,7 +793,7 @@ function inst_bpl {
   # proc_vars
   cd $HOME
   mkdir BPL-node
-  git clone https://github.com/cyrus19901/BPL-node.git 2>/dev/null
+  git clone https://github.com/blockpool-io/BPL-node.git 2>/dev/null
   cd BPL-node
   git checkout $GIT_ORIGIN 2>/dev/null
   git pull origin $GIT_ORIGIN 2>/dev/null
