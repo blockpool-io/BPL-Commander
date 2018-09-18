@@ -42,9 +42,9 @@ Clone the repo
 
 #### Via wget
 
-`wget https://raw.githubusercontent.com/blockpool-io/BPL-Commander/master/BPLcommander.sh `
+`wget https://raw.githubusercontent.com/blockpool-io/BPL-Commander/master/BPLcommander.sh -P ~/BPL-Commander`
 
-This will place BPLcommander.sh in the root of your Home folder (or your current dir if not Home)
+This will create the folder BPL-Commander in the root of your Home folder with the script inside.
 
 ### Launch BPL Commander
 
