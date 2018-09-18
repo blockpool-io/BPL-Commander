@@ -61,21 +61,18 @@ if [ $(systemd-detect-virt -c) != "none" ]; then
   exit 1
 fi
 
-# TEMP N
-sudo apt-get install npm
-sudo npm install -g n
-sudo n 9.10.0
 # ----------------------------------
 # Variables
 # ----------------------------------
+
+NODE_VERSION="9.10.0"
 
 EDIT=nano
 
 GIT_ORIGIN="bpl-mainnet"
 
-PORT="9030"
-
 LOC_SERVER="http://localhost"
+PORT="9030"
 
 ADDRESS=""
 
@@ -750,9 +747,9 @@ function nvm {
     export NVM_DIR="$HOME/.nvm"
     [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
     ### Installing node ###
-    nvm install 6.9.5 >>install.log
-    nvm use 6.9.5 >>install.log
-    nvm alias default 6.9.5 >>install.log
+    nvm install $NODE_VERSION >> install.log
+    nvm use $NODE_VERSION >> install.log
+    nvm alias default $NODE_VERSION >> install.log
     echo -e "$(green "      ✔ Node `node -v` has been installed")"
   else
     echo -e "$(green "      ✔ Node `node -v` is  already installed")"
@@ -762,7 +759,7 @@ function nvm {
   if [ "$return_" == 0 ]; then
     echo -e "$(red "      ✘ NPM is not installed, installing...")"
     ### Install npm ###
-    npm install -g npm >>install.log 2>&1
+    npm install -g npm >> install.log 2>&1
     echo -e "$(green "      ✔ NPM `npm -v` has been installed")"
   else
     echo -e "$(green "      ✔ NPM `npm -v` is already installed")"
