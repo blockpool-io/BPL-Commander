@@ -61,21 +61,18 @@ if [ $(systemd-detect-virt -c) != "none" ]; then
   exit 1
 fi
 
-# TEMP N
-sudo apt-get install npm
-sudo npm install -g n
-sudo n 9.10.0
 # ----------------------------------
 # Variables
 # ----------------------------------
+
+NODE_VERSION="9.10.0"
 
 EDIT=nano
 
 GIT_ORIGIN="bpl-mainnet"
 
-PORT="9030"
-
 LOC_SERVER="http://localhost"
+PORT="9030"
 
 ADDRESS=""
 
@@ -749,13 +746,13 @@ function nvm {
   node_check node
   if [ "$return_" == 0 ]; then
     echo -e "$(red "      ✘ Node is not installed, installing...")"
-    curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.32.0/install.sh 2>/dev/null | bash >>install.log
+    curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh 2>/dev/null | bash >> install.log
     export NVM_DIR="$HOME/.nvm"
     [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
     ### Installing node ###
-    nvm install 6.9.5 >>install.log
-    nvm use 6.9.5 >>install.log
-    nvm alias default 6.9.5 >>install.log
+    nvm install $NODE_VERSION >> install.log
+    nvm use $NODE_VERSION >> install.log
+    nvm alias default $NODE_VERSION >> install.log
     echo -e "$(green "      ✔ Node `node -v` has been installed")"
   else
     echo -e "$(green "      ✔ Node `node -v` is  already installed")"
@@ -765,7 +762,7 @@ function nvm {
   if [ "$return_" == 0 ]; then
     echo -e "$(red "      ✘ NPM is not installed, installing...")"
     ### Install npm ###
-    npm install -g npm >>install.log 2>&1
+    npm install -g npm >> install.log 2>&1
     echo -e "$(green "      ✔ NPM `npm -v` has been installed")"
   else
     echo -e "$(green "      ✔ NPM `npm -v` is already installed")"
@@ -774,9 +771,14 @@ function nvm {
   node_check forever
   if [ "$return_" == 0 ]; then
     echo -e "$(red "      ✘ Forever is not installed, installing...")"
-    ### Install forever ###
-    npm install forever -g >>install.log 2>&1
-    echo -e "$(green "      ✔ Forever has been installed")"
+    npm install forever -g >> install.log 2>&1
+
+    node_check forever
+    if [ "$return_" == 0 ]; then
+      echo -e "$(red "      ✘ Forever has not been installed")"
+    else
+      echo -e "$(green "      ✔ Forever has been installed")"
+    fi
   else
     echo -e "$(green "      ✔ Forever is already installed")"
   fi
