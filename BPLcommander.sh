@@ -771,9 +771,14 @@ function nvm {
   node_check forever
   if [ "$return_" == 0 ]; then
     echo -e "$(red "      ✘ Forever is not installed, installing...")"
-    ### Install forever ###
-    npm install forever -g >>install.log 2>&1
-    echo -e "$(green "      ✔ Forever has been installed")"
+    npm install forever -g >> install.log 2>&1
+
+    node_check forever
+    if [ "$return_" == 0 ]; then
+      echo -e "$(red "      ✘ Forever has not been installed")"
+    else
+      echo -e "$(green "      ✔ Forever has been installed")"
+    fi
   else
     echo -e "$(green "      ✔ Forever is already installed")"
   fi
