@@ -464,13 +464,13 @@ function prereq {
   # Installation loop
   echo -e "$(yellow "-----------------------------------------------")"
   for (( i=1; i<${arraylength}+1; i++ )); do
-    asciiart;
+    asciiart
     echo -e "$(yellow "         Installing prerequisites...") "
     echo -e "$(yellow "-----------------------------------------------")" # added
     echo -e "$(yellow "  $i  /  ${arraylength}  :  ${array[$i-1]}")"
 
     if [ $(dpkg-query -W -f='${Status}' ${array[$i-1]} 2>/dev/null | grep -c "ok installed") -eq 0 ]; then
-      sudo apt-get install -yqq >&- 2>&- ${array[$i-1]};
+      sudo apt-get install -yqq >&- 2>&- ${array[$i-1]}
     else
       echo "$(green " Package: ${array[$i-1]} is already installed!")"
     fi
@@ -839,7 +839,7 @@ function db_exists {
 
     if [[ "$YN" =~ [Yy]$ ]]; then
       echo -e "$(green "\n             Dropping 'bpl_$BPLNET'...")\n"
-      drop_db;
+      drop_db
       echo -e "$(green "          'bpl_$BPLNET' has been dropped.")\n"
       pause
       true
@@ -857,7 +857,7 @@ function user_exists {
   fi
 
   if [[ $(sudo -u postgres psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='$USER'" 2>&1) ]]; then
-    echo "User $USER exists";
+    echo "User $USER exists"
     read -r -n 1 -p "$(yellow "  User $USER exists! Do you want to remove it? (y/n):") " YN
 
     if [[ "$YN" =~ [Yy]$ ]]; then
