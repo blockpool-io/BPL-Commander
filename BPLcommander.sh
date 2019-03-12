@@ -91,11 +91,12 @@ re='^[0-9]+$' # For numeric checks
 log="install_bpl.log"
 
 #~ Mainnet Seed Nodes ~#
-mn_seed0=("13.56.163.57:9030" "seed01")
-mn_seed1=("54.183.132.15:9030" "seed02")
-mn_seed2=("54.183.69.30:9030" "seed03")
-mn_seed3=("54.183.152.67:9030" "seed04")
-mn_seed4=("54.183.22.145:9030" "seed05")
+mn_seed0=("s01.mc.blockpool.io:9030" "seed01")
+mn_seed1=("s02.mc.blockpool.io:9030" "seed02")
+mn_seed2=("s05.mc.blockpool.io:9030" "seed03")
+mn_seed3=("s08.mc.blockpool.io:9030" "seed04")
+mn_seed4=("s10.mc.blockpool.io:9030" "seed05")
+
 
 #~ Testnet Seed Nodes ~#
 tn_seed0=("35.180.64.83:9028" "seed01")
